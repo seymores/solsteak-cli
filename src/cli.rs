@@ -9,7 +9,6 @@ use serde_json::{Value, json};
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Options {
     pub address: String,
-    pub epochs: u16,
     pub json: bool,
     pub offline: bool,
     pub refresh: bool,
@@ -41,10 +40,9 @@ impl LaunchError {
     pub fn report(&self, options: Option<&Options>) -> Value {
         let generated_at = SystemTime::now().duration_since(UNIX_EPOCH).ok();
         json!({
-            "schema_version": 1,
+            "schema_version": 2,
             "input": options.map(|options| json!({
                 "address": options.address,
-                "epochs": options.epochs,
                 "offline": options.offline,
             })),
             "network": {"cluster": "mainnet", "genesis_hash": null},
@@ -75,6 +73,10 @@ pub fn parse(args: &[OsString]) -> Result<Launch, LaunchError> {
         .after_help(
             "Online use requires HELIUS_API_KEY in the environment. Offline needs no key.\n\
              Public addresses are sent to Helius; no signing, wallet connection or telemetry.\n\
+             Rewards always cover the latest 30 completed epochs (the recent 15 compared with the previous 15)\n\
+             of the account's current validator; historical validator attribution is unverified. The annualized account return estimate\n\
+             uses total pre-reward account balance and a nominal two-day epoch; it is not validator\n\
+             or staking APY.\n\
              JSON emits one report object; interactive mode launches the dashboard.",
         )
         .arg(
@@ -85,14 +87,6 @@ pub fn parse(args: &[OsString]) -> Result<Launch, LaunchError> {
                 .required(true)
                 .help("Wallet/authority or native stake-account address"),
         )
-        .arg(
-            Arg::new("epochs")
-                .long("epochs")
-                .value_name("N")
-                .default_value("1")
-                .value_parser(clap::value_parser!(u16).range(1..=100))
-                .help("Completed reward epochs to inspect (1-100)"),
-        )
         .arg(flag("json", "Print one JSON result without a TUI"))
         .arg(
             flag("offline", "Read saved observations without network calls")
@@ -100,7 +94,7 @@ pub fn parse(args: &[OsString]) -> Result<Launch, LaunchError> {
         )
         .arg(flag(
             "refresh",
-            "Revalidate observations and requested rewards",
+            "Revalidate observations and the 30-epoch reward window",
         ))
         .arg(flag("no-color", "Use monochrome terminal output"))
         .try_get_matches_from(args);
@@ -119,7 +113,7 @@ pub fn parse(args: &[OsString]) -> Result<Launch, LaunchError> {
         Err(_) => {
             return Err(LaunchError::input(
                 "INVALID_ARGUMENTS",
-                "Invalid arguments. Supply -a ADDRESS, use --epochs 1-100, and do not combine --offline with --refresh. Run ssteak --help for usage.",
+                "Invalid arguments. Supply -a ADDRESS, do not combine --offline with --refresh, and note the reward window is fixed (no --epochs). Run ssteak --help for usage.",
             ));
         }
     };
@@ -135,7 +129,6 @@ pub fn parse(args: &[OsString]) -> Result<Launch, LaunchError> {
     }
     Ok(Launch::Inspect(Options {
         address: address.clone(),
-        epochs: *matches.get_one::<u16>("epochs").expect("clap default"),
         json: matches.get_flag("json"),
         offline: matches.get_flag("offline"),
         refresh: matches.get_flag("refresh"),

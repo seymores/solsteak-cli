@@ -177,3 +177,18 @@ fn advancing_epoch_source_does_not_authorize_changed_account_at_same_slot() {
     changed["data"]["accounts"][0]["balance_lamports"] = json!("10");
     assert!(!store.save_report(&changed).unwrap().published);
 }
+
+#[test]
+fn version_one_snapshots_are_not_served_as_current_data() {
+    let store = store();
+    assert!(store.save_report(&report(400)).unwrap().published);
+    assert!(store.load_report(ADDRESS).unwrap().is_some());
+    rusqlite::Connection::open(store.path())
+        .unwrap()
+        .execute(
+            "UPDATE snapshots SET report_json=replace(report_json,'\"schema_version\":2','\"schema_version\":1')",
+            [],
+        )
+        .unwrap();
+    assert!(store.load_report(ADDRESS).unwrap().is_none());
+}

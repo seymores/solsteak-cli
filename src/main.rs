@@ -8,7 +8,6 @@ use ssteak::{
     storage::{Store, default_path},
 };
 use std::sync::{Arc, atomic::AtomicBool};
-use std::time::Duration;
 
 fn main() -> ExitCode {
     let args: Vec<_> = std::env::args_os().skip(1).collect();
@@ -74,14 +73,7 @@ fn json_mode(options: &Options, key: Option<&std::ffi::OsStr>) -> ExitCode {
                 options,
                 &store,
                 client.as_ref(),
-                &RequestContext::new(
-                    if options.epochs == 1 {
-                        Duration::from_secs(30)
-                    } else {
-                        Duration::from_secs(120)
-                    },
-                    Arc::clone(&cancelled),
-                ),
+                &RequestContext::new(ssteak::rewards::DEADLINE, Arc::clone(&cancelled)),
                 options.refresh,
                 |_| {},
             )

@@ -1,8 +1,8 @@
 # SolSteak TUI — technical requirements
 
-Version: 0.5 · 7 October 2026 · Status: v1 scope and application contract frozen; storage/provider contracts gated
+Version: 0.7 · 7 October 2026 · Status: post-v1 30-epoch reward history and period-comparison requirements confirmed
 
-This document defines the confirmed v1 product scope and the technical defaults to finalize before implementation. The user authorized development on 7 October 2026. Remaining technical contracts and provider evidence are explicit prerequisite tasks; agents must not silently convert proposals into confirmed financial semantics.
+This document records the released v1 foundation and the confirmed requirements for the next reward-history release. The user authorized development on 7 October 2026. Contract updates and provider-budget evidence are explicit prerequisite tasks; agents must not silently convert estimates into confirmed financial semantics.
 
 ## 1. Purpose and inherited decisions
 
@@ -31,10 +31,10 @@ The initial release answers:
 
 1. Which stake accounts are associated with this address, and through which authority?
 2. How much SOL is held in those accounts, how much is delegated, and to which validators?
-3. What inflation rewards were recorded for a bounded selection of completed epochs?
+3. What inflation rewards were recorded for the latest 30 completed epochs, what annualized account-return estimate do they imply, and how do the latest 15 epochs compare with the 15 before them?
 4. Which observations deserve attention, and which data remains unknown?
 
-Exclude initially: transaction submission, liquid staking tokens, fiat prices, tax reporting, MEV reward accounting, validator rankings, continuous monitoring, notifications, network-wide indexing, and complete lifetime wallet history. These exclusions are confirmed for v1. Annualized yield is also deferred.
+Exclude initially: transaction submission, liquid staking tokens, fiat prices, tax reporting, MEV reward accounting, validator rankings, continuous monitoring, notifications, network-wide indexing, and complete lifetime wallet history. These exclusions are confirmed for v1. Validator staking APY and total rewards since staking with a validator remain deferred; the next release adds only a clearly labeled annualized account-return estimate and a current-versus-previous 15-epoch comparison for each stake account.
 
 ## 3. TUI launch and UX contract
 
@@ -44,7 +44,6 @@ Exclude initially: transaction submission, liquid staking tokens, fiat prices, t
 
 ```sh
 ssteak -a <address>               # Interactive staking dashboard
-ssteak -a <address> --epochs 10   # Dashboard with ten completed reward epochs
 ssteak -a <address> --offline     # Browse local cached observations
 ssteak -a <address> --json        # Required v1 one-shot mode, no TUI
 ```
@@ -52,14 +51,13 @@ ssteak -a <address> --json        # Required v1 one-shot mode, no TUI
 | Flag | Behavior |
 | --- | --- |
 | `-a, --address ADDRESS` | Required at launch; one wallet/authority or native stake-account address. |
-| `--epochs N` | Reward lookback; confirmed default 1 completed epoch, allowed range 1–100. |
 | `--json` | Explicit noninteractive mode: one structured result and exit; no raw mode or alternate screen. |
 | `--refresh` | Bypass reusable observations on initial load. |
 | `--offline` | No network calls during the session; label cached data and age. Conflicts with `--refresh`. |
 | `--no-color` | Monochrome interface with textual status and selection markers. |
 | `-h, --help` / `-V, --version` | Text output without address, key, database, or terminal initialization. |
 
-Remove the earlier `--details` flag: detail expansion happens inside the TUI. No separate account/reward/validator subcommands are required.
+Remove the earlier `--details` and `--epochs` flags: detail expansion happens inside the TUI and the reward window is always the latest 30 completed epochs (the current 15 and the previous 15). Supplying either removed flag is an invalid-argument error. No separate account/reward/validator subcommands are required.
 
 Validate arguments and online credentials before entering raw mode. Missing address/key produces concise guidance and exit 2. Use the user-supplied `HELIUS_API_KEY`; offline mode needs no key. If stdin or stdout is not a usable terminal, explain that `--json` is available and exit 2 without control codes; do not silently change modes.
 
@@ -67,7 +65,7 @@ Automatically inspect native stake-account input directly; otherwise discover bo
 
 ### 3.2 Information hierarchy
 
-**UX-01 — Answer-first, single-dashboard design.** Make balances, delegation, rewards, and issues understandable without learning commands or moving through multiple pages. Prefer expandable sections and contextual detail rather than a maze of tabs. No required splash screen or decorative charts.
+**UX-01 — Answer-first, single-dashboard design.** Make balances, delegation, rewards, and issues understandable without learning commands or moving through multiple pages. Prefer expandable sections and contextual detail rather than a maze of tabs. No required splash screen or decorative charts; the reward chart is functional and exposes exact values through keyboard navigation.
 
 | Region | Contents |
 | --- | --- |
@@ -75,8 +73,8 @@ Automatically inspect native stake-account input directly; otherwise discover bo
 | Summary | Associated account balance, recorded delegated amount, account/validator counts, latest completed epoch reward total/subtotal, and coverage. |
 | Attention | Visible findings and missing-data warnings, severity words, and affected account references. Material warnings cannot be hidden in details. |
 | Stake accounts | Primary scrollable table: account, validator, balance (SOL), observed stake state, and latest-epoch reward/availability. Every discovered row is reachable. |
-| Contextual detail | Enter expands full addresses, authorities and relationship, stake fields, lockup, validator observations, reward history, and provenance. |
-| Secondary sections | Collapsible validator grouping and per-epoch rewards, with explicit coverage and no-data states. |
+| Account Detail | Always visible for the selected account: the current-versus-previous 15-epoch reward chart and period summary first, then full addresses, authorities and relationship, stake fields, lockup, validator observations, reward history, and provenance. |
+| Secondary sections | Collapsible validator grouping, with explicit coverage and no-data states. |
 | Footer | Context-sensitive key hints, focused region, row position/count, and loading/retry status. |
 
 Default order: account balance descending, public key ascending as tie-breaker. Right-align numbers and use consistent SOL precision. Display unknowns as “Unknown” or “No data,” not zero. Separate total account balance from delegated/effective stake. Avoid red/green-only meaning, required emoji, and special icon fonts. Sanitize provider-supplied control characters.
@@ -91,15 +89,16 @@ Search filters visible rows only; summary totals remain for the full selected ac
 | --- | --- |
 | Up/Down or `j/k` | Move within the focused table/list or scroll focused content. |
 | Tab / Shift-Tab | Cycle interactive regions; focus navigation, not tabbed pages. |
-| Enter | Expand/collapse selected item/section, or confirm input. |
-| Esc | Close top overlay/detail, cancel input, or clear search; never unexpectedly exit. |
+| Enter | Expand/collapse the validator section, or confirm input. |
+| Esc | Close top overlay, cancel input, or clear search; never unexpectedly exit. |
 | PageUp/PageDown, Home/End | Navigate long lists. |
+| Left/Right | Select the epoch pair shown in the Account Detail chart (from the accounts table or Account Detail focus). |
 | `/` | Search account/validator address or available name in the focused table. |
 | `s` | Open labeled sort options for the focused table. |
 | `r` | Refresh current address; disabled with explanation offline. |
 | `a` | Open address-entry overlay to inspect another address. |
 | `?` | Help overlay: keys, field meanings, and scope caveats. |
-| `q` | Close help/detail overlay first; otherwise quit from dashboard. |
+| `q` | Close the help overlay first; otherwise quit from dashboard. |
 | Ctrl-C | Quit from any state with terminal cleanup, exit 130. |
 
 While editing text, printable shortcut letters insert text instead of firing actions. Support pasted addresses. Enter validates and submits; Esc cancels. Invalid input stays focused with a local message and does not replace the current address. Each submitted address starts a new request generation: cancel prior work when possible and ignore late responses from earlier generations.
@@ -108,7 +107,7 @@ While editing text, printable shortcut letters insert text instead of firing act
 
 **UX-03 — Nonblocking interface.** Render the shell before data arrives. Keep navigation, help, cancellation, and quit responsive throughout network work. Sections independently support loading, ready, empty, partial, failed, and stale states. Never show temporary zero balances as loading placeholders.
 
-Display usable cache immediately with its age; refresh online on launch when stale or explicitly requested. Thereafter refresh is manual in v1: no hidden polling or daemon. Redrawing never triggers RPC calls. Each refresh freezes its reward epoch range; a newer current epoch must not relabel old rewards.
+Display usable cache immediately with its age; refresh online on launch when stale or explicitly requested. Thereafter refresh is manual in v1: no hidden polling or daemon. Redrawing never triggers RPC calls. Each refresh freezes the latest 30 completed epochs; a newer current epoch must not relabel old rewards.
 
 When refresh fails, retain prior data visibly marked stale and show the failure and retry action. A cold failure renders an actionable error panel with retry/address change/help/quit. Successful empty discovery says “No associated native stake accounts found.” Missing reward records are not the same as an empty portfolio.
 
@@ -144,7 +143,7 @@ Below 80×24 show current dimensions, minimum-size guidance, and quit help. Rest
 
 **FR-08 — Findings.** Each finding contains a stable code, severity, affected address, observed evidence, observation time/slot, and plain-language explanation. Initial findings: undelegated funds, deactivation requested, provider-reported validator delinquency, unsupported state, incomplete discovery, and incomplete reward data. An intentional deactivation is informational, not automatically a fault. Lockup metadata remains available in account details without producing an attention finding. Avoid a generic “healthy” badge: say “No issues detected by these checks” only when required checks completed.
 
-**FR-09 — Validators.** Group using vote-account public keys, not names. Report current commission, current/delinquent classification when available, and concentration using recorded delegated amounts, with that denominator labeled. A missing validator record is unknown. Current commission is not historical commission. Names are optional enrichment. Comparative yield and validator rankings remain deferred until a defensible historical methodology exists.
+**FR-09 — Validators.** Group using vote-account public keys, not names. Report current commission, current/delinquent classification when available, and concentration using recorded delegated amounts, with that denominator labeled. A missing validator record is unknown. Current commission is not historical commission. Names are optional enrichment. Comparative yield, validator rankings, and total rewards since staking with a validator remain deferred until defensible historical delegation attribution exists.
 
 ## 6. Rewards and historical correctness
 
@@ -152,11 +151,19 @@ Below 80×24 show current dimensions, minimum-size guidance, and quit help. Rest
 
 **FR-11 — Missing results.** Distinguish recorded reward (including explicit numeric zero), no reward data returned, request failure, and not queried. RPC `null` means no reward data available; it is not automatically confirmed zero. Never manufacture a complete zero-valued epoch from nulls.
 
-**FR-12 — Epoch boundaries.** Freeze the requested epoch range at the start of each load or refresh, using finalized epoch context. Default to completed epochs. The most recently completed reward epoch may still lack available records; label availability rather than promising immediate completeness. Refresh missing results on subsequent online runs. Completed discovery plus fully processed requests means query coverage, not proof of complete lifetime accounting.
+**FR-12 — Epoch boundaries.** Freeze exactly the latest 30 completed epochs at the start of each load or refresh, using finalized epoch context. With latest completed epoch L, the *current period* is epochs L down to L−14 and the *previous period* is L−15 down to L−29; pair `i` (0 is newest, 14 oldest) is (L−i, L−15−i). If fewer than 30 completed epochs exist, request the available range and report shortened coverage: positions with no existing epoch are absent (not gaps) and their pairs cannot be compared; with 15 or fewer completed epochs there is no previous period. The most recently completed reward epoch may still lack available records; label availability rather than promising immediate completeness. Refresh missing results on subsequent online runs. Completed discovery plus fully processed requests means query coverage, not proof of complete lifetime accounting.
 
 **FR-13 — Totals.** Aggregate only returned numeric reward records. With missing data, label the result “recorded subtotal” and expose counts for every coverage state. Do not sum bank balance changes as rewards. Do not subtract validator commission again from the reward amount credited by the chain. Default human output must not say “earned this epoch” when it refers to a prior epoch.
 
-**FR-14 — Yield.** Defer annualized yield in the first release unless we explicitly add it. Reward divided by today's balance is not a defensible historical yield calculation. A future yield feature needs an eligible principal definition, account-change treatment, actual period duration, and an explicit annualization method.
+**FR-14 — Annualized account-return estimate.** For each recorded stake-account reward, calculate the pre-reward account balance as `post_balance_lamports - amount_lamports` using checked integer arithmetic. When that balance is positive, calculate the epoch account return as `amount / pre_reward_balance` and annualize it as `(1 + epoch_return)^182.5 - 1`, using a fixed nominal two-day Solana epoch and 365-day year. Exact lamport inputs remain integer values; rounding applies only to the displayed percentage. A zero reward with a positive denominator produces 0%. A missing reward or post-balance, zero denominator, underflow, or invalid value produces `Unknown` or an invalid-response error as appropriate, never a synthetic percentage.
+
+Call this value “Annualized account return estimate,” never “validator APY,” “staking APY,” or “real APY.” It uses total pre-reward account balance rather than historical effective stake and a nominal rather than measured epoch duration. Do not combine balances or return estimates across stake accounts. The latest completed epoch estimate is the headline; selecting an earlier graph point shows that epoch's estimate.
+
+**FR-15 — Account reward chart.** The always-visible Account Detail panel starts with a reward chart for the selected stake account, with the account's current validator shown. The chart overlays the two periods by pair position: 15 columns, oldest pair left, each holding two adjacent bars, the previous-period epoch and the current-period epoch, drawn on one shared scale (the account's largest recorded reward in the window). The periods must be distinguishable without color (different fill glyphs plus a legend line). The chart follows the accounts-table selection (Up/Down) and Left/Right selects a pair. For the selected pair show both epoch numbers, exact rewards, coverage states, annualized account-return estimates, and the pair difference. Missing epochs render as gaps per period and keep partial coverage visible. Use only the account's current validator; label the historical validator attribution as unverified because delegation history is not reconstructed.
+
+**FR-16 — Period comparison.** For each stake account, compare the current period with the previous period using only *paired recorded positions*: pair `i` counts only when both its epochs have a numeric recorded reward (an explicit zero counts). Report the number of compared pairs (0–15) and the number of pairs left out. Over the compared pairs only, compute with checked `u128` integers the current and previous recorded subtotals and the signed difference `current − previous` in lamports, and the percent change of the subtotal (`difference / previous × 100`; Unknown when the previous subtotal is zero). Also report the mean annualized account-return estimate of each period over the compared pairs whose both estimates are available (FR-14), the number of such pairs, and the difference in percentage points. With no compared pairs, or no pairs with both estimates, the affected values are Unknown, never zero. Percentages are rounded only for display. Do not combine accounts, validators or periods beyond this per-account comparison, and do not rank accounts or validators.
+
+Label the result “Change vs previous 15 epochs” and show direction in words (higher, lower, unchanged), not by color alone. The difference reflects reward amounts and the total pre-reward balance, so deposits, withdrawals, splits, merges, validator changes, commission and epoch-specific effects all move it; state that it is descriptive, not a forecast or a measure of validator quality, and that attribution to the current validator is unverified.
 
 ## 7. RPC plan and provider boundary
 
@@ -172,7 +179,7 @@ Below 80×24 show current dimensions, minimum-size guidance, and quit help. Rest
 
 Helius-specific pagination or enhanced endpoints may be adopted after a capability spike, behind the adapter. Do not invent plan limits or assume arbitrary batch sizes. Discovery failure, limits, or truncation must prevent a claim of complete discovery. Check both authority queries independently.
 
-For A selected accounts, E epochs, and verified reward batch size B, reward requests are approximately `E × ceil(A/B)`, excluding retries. Classification, discovery, epoch, validator, and state-calculation requests are additional. A JSON-RPC HTTP batch does not necessarily reduce provider billing units. No fixed “three calls per wallet” requirement.
+For A selected accounts and verified reward batch size B, the fixed 30-epoch window requires approximately `30 × ceil(A/B)` reward requests, excluding retries. Classification, discovery, epoch, validator, and state-calculation requests are additional. A JSON-RPC HTTP batch does not necessarily reduce provider billing units. No fixed “three calls per wallet” requirement.
 
 Use finalized commitment where the method supports it. Preserve per-source context slots; independent calls are not an atomic snapshot. Do not describe `minContextSlot` as an exact historical snapshot selector. On detected epoch rollover during a report, retry the affected snapshot once or label inconsistency and return partial status.
 
@@ -235,9 +242,9 @@ Foreign keys enforce snapshot/member relationships. Index address-based discover
 | Finalized epoch context | Check on each online load/refresh; detected rollover invalidates epoch-sensitive snapshot freshness. |
 | Recorded finalized rewards | Reuse without time-based expiry; retain across restarts. |
 | Missing/error reward results | Retry on a later explicit load/refresh; honor provider backoff and current invocation budgets. Never permanently cache as zero. |
-| Derived totals/findings | Recompute from the selected data generation; do not persist as independent authoritative facts. |
+| Derived totals/findings/comparisons | Recompute from the selected data generation; do not persist as independent authoritative facts. |
 
-Changing the reward lookback queries only missing eligible account/epoch combinations. The normal `r` action refreshes current observations and retries missing rewards while reusing recorded rewards. Explicit `--refresh` also revalidates cached rewards within the requested lookback; it does not erase the cache first.
+Each load resolves the fixed 30-epoch window and queries only missing eligible account/epoch combinations; the first load after the window grows from 15 to 30 therefore fetches the previous period once, then reuses it. The normal `r` action refreshes current observations and retries missing rewards while reusing recorded rewards. Explicit `--refresh` also revalidates cached rewards within that window; it does not erase the cache first.
 
 **DB-05 — Cache-first load.** Read the latest usable snapshot, build an in-memory model, and show observation age immediately. In online mode obtain epoch context and refresh stale/missing sections in the background. In offline mode make zero network requests, including genesis/epoch checks; use persisted network metadata. Label the epoch “last observed epoch,” not a verified current epoch. Resolve the offline reward range relative to that last observed epoch, clearly labeled. Missing data stays unknown; an uncached address shows “No local data for this address.”
 
@@ -263,7 +270,7 @@ Create the schema on first use with numbered, transactional migrations and param
 
 ## 9. Output, errors, privacy, and budgets
 
-Every JSON response includes `schema_version`, `input`, `network`, `generated_at`, `status`, `data`, `coverage`, `sources`, `warnings`, and `errors`. [Report schema v1](docs/contracts/report.schema.json), [synthetic examples](docs/contracts/examples/), and [application behavior](docs/contracts/behavior.md) are normative parts of this spec. Schema validation is structural; Rust must also enforce numeric bounds, unique identities, resolved source IDs and matching coverage counts.
+Every JSON response includes `schema_version`, `input`, `network`, `generated_at`, `status`, `data`, `coverage`, `sources`, `warnings`, and `errors`. The report schema must advance to version 2 because removing the configurable epoch input and adding account-return estimates changes the wire contract. [The checked-in report schema](docs/contracts/report.schema.json), [synthetic examples](docs/contracts/examples/), and [application behavior](docs/contracts/behavior.md) must be updated together before implementation. Schema validation is structural; Rust must also enforce numeric bounds, unique identities, resolved source IDs and matching coverage counts.
 
 For one-shot JSON mode, frozen exit codes: 0 complete report; 2 input/configuration error; 3 useful partial report; 4 provider/network failure with no usable report; 5 local persistence/internal failure; 130 interrupted. Attention findings alone do not mean command failure. An explicitly requested offline report can exit 0 if complete for its labeled cached observation; missing required cached data produces 3 or 4 with a specific offline error code.
 
@@ -273,7 +280,7 @@ Configuration: the user supplies their own API key through `HELIUS_API_KEY`. Nev
 
 Never log API keys, authorization headers, or unredacted credential-bearing URLs. No telemetry by default. Public addresses are sent to the configured RPC provider; explain this in help/privacy documentation. Local inspection history remains local unless the user exports it.
 
-Proposed budgets: four in-flight requests; 10-second request timeout; at most two retries for transient failures; bounded jittered backoff respecting Retry-After within the command deadline. No retries for malformed requests or invalid credentials. Default report deadline 30 seconds; explicit multi-epoch report deadline 120 seconds. On deadline expiry, JSON mode returns usable partial results; TUI mode ends only the current fetch and remains open with partial/error status. All values remain proposals pending provider measurements.
+Proposed budgets: four in-flight requests; 10-second request timeout; at most two retries for transient failures; bounded jittered backoff respecting Retry-After within the command deadline. No retries for malformed requests or invalid credentials. The fixed 30-epoch report deadline is 120 seconds, to be rechecked against measured 30-epoch call times (the 15-epoch window measured about 5 seconds cold for 10 accounts). On deadline expiry, JSON mode returns usable partial results; TUI mode ends only the current fetch and remains open with partial/error status. All values remain proposals pending provider measurements.
 
 Proposed engineering targets: cached/offline report p95 under 500 ms excluding installation; cold inspection p95 under 5 seconds for up to 20 stake accounts on a documented benchmark environment and provider plan. These are targets to validate, not provider guarantees. Larger inputs must be bounded, cancellable, and show progress inside the TUI (stderr only for JSON mode). Do not silently truncate accounts to meet a timing target.
 
@@ -315,18 +322,28 @@ Proposed engineering targets: cached/offline report p95 under 500 ms excluding i
 | AC-32 | Disk full, read-only file, lock timeout, corrupt file | Visible storage failure; no destructive reset or false saved status; committed data preserved where readable. |
 | AC-33 | Migration succeeds, fails, or encounters newer schema | Versioned upgrade/rollback works; consistent pre-upgrade backup; unsupported schema unchanged. |
 | AC-34 | All-u64-range amounts and sentinel epochs round-trip | Exact SQLite read/write and Rust totals/sorting, without lossy SQL arithmetic. |
-| AC-35 | Fresh cache, stale cache, epoch rollover, expanded lookback | Correct reuse/invalidation; query only required missing data except explicit revalidation. |
+| AC-35 | Fresh cache, stale cache, or epoch rollover with the fixed 30-epoch window | Correct reuse/invalidation; query only required missing data except explicit revalidation. |
 | AC-36 | Offline restart without API key | No HTTP calls; persisted network and last-observed epoch used with explicit age/scope. |
 | AC-37 | TUI redraw/navigation during database work | No per-frame database queries; interface remains responsive. |
+| AC-38 | Launch with `--epochs` | Invalid-argument error; no terminal, storage, or network initialization. |
+| AC-39 | Latest 30 completed epochs include recorded, null, failed, and cached results | Exactly 30 ordered positions in two periods of 15, with gaps and explicit partial coverage. |
+| AC-40 | Positive, zero, missing, underflowing, or zero-denominator reward inputs | Account-return estimate follows FR-14; invalid or unavailable inputs never become a fabricated percentage. |
+| AC-41 | Multiple stake accounts share the current validator | Each account has its own graph and estimate; no combined return percentage. |
+| AC-42 | Account changed validators during the 30-epoch window | Group under the current validator with historical attribution explicitly unverified. |
+| AC-43 | Keyboard navigation through table rows and epoch pairs | The chart and period summary in Account Detail stay visible and synchronized with the selected row and pair at 80×24 and 120×35, including monochrome mode, with the two periods distinguishable without color. |
+| AC-44 | Pairs where one or both epochs lack a recorded reward | Only pairs with both numeric records are compared; the compared and left-out counts are shown; gaps stay visible per period. |
+| AC-45 | Positive, zero, missing, negative-difference, zero-previous and u64-range subtotals | Subtotals and the signed difference are exact integers; percent change is Unknown for a zero previous subtotal; estimate means and percentage-point difference follow FR-16; unavailable inputs never become a fabricated number. |
+| AC-46 | Fewer than 30 completed epochs (for example 20, and 15 or fewer) | Available positions are requested and labeled shortened; pairs without both epochs are not compared; no previous period means the comparison is Unknown. |
+| AC-47 | Epoch rollover or warm cache after a 30-epoch load | Only newly eligible epochs are requested; pairs shift by one epoch without relabeling old rewards or mixing periods. |
 
-Test domain behavior with fixed RPC fixtures covering these cases. Add deterministic UI state-transition tests, frame snapshots at 80×24 and 120×35, and pseudoterminal tests for keyboard input, resizing, and cleanup. Manually verify light/dark terminal themes and monochrome mode. Domain tests alone do not satisfy the TUI requirement. Add opt-in live provider smoke tests for discovery, supported decoding, limits, and reward availability; normal automated tests must not require paid credentials. Validate exact stake calculations against authoritative reference results if included. No live Helius queries or implementation validation have been performed for this draft.
+Test domain behavior with fixed RPC fixtures covering these cases. Add deterministic UI state-transition tests, frame snapshots at 80×24 and 120×35, and pseudoterminal tests for keyboard input, resizing, and cleanup. Manually verify light/dark terminal themes and monochrome mode. Domain tests alone do not satisfy the TUI requirement. Keep live provider smoke tests opt-in; normal automated tests must not require paid credentials. Existing provider evidence covers reward retrieval, but the mandatory 30-epoch call budget still requires release validation. Validate exact stake calculations against authoritative reference results if included.
 
 ## 11. Delivery sequence and spec gate
 
-1. **Capability spike and contract gates:** verify Helius filtered discovery, limits, account encoding, network identity, reward lookback availability, and epoch-boundary behavior. Record sanitized representative responses, provider plan, measured call counts, and limits. Live queries require a separately authorized run. Exact activation is deferred; lack of an exact calculation does not block v1. Freeze remaining application and storage contracts in prerequisite beads before dependent implementation.
-2. **TUI vertical slice:** `ssteak -a ADDRESS`; dashboard, keyboard navigation, expandable detail, responsive layout, asynchronous loading, and terminal cleanup. Validate with fixtures first; a static table printer does not complete this milestone.
-3. **Rewards and persistence:** implement DB-01 through DB-10, migration/backup handling, cache-first TUI integration, offline use, atomic refresh/resume, and AC-27 through AC-37.
-4. **Polish and release:** validator grouping/findings, search/sort/address switching/help, required JSON mode, terminal snapshot/lifecycle tests, packaging, and hands-on UX verification.
+1. **Contract update:** remove the configurable epoch input, define schema version 2, freeze the account-return estimate fields, and update behavior/examples before dependent implementation.
+2. **Reward window and calculation:** make the latest 30 completed epochs the sole online/offline window, preserve resumable cache behavior, and calculate per-account estimates and the FR-16 period comparison from validated records.
+3. **Account reward chart:** add the overlaid current-versus-previous chart and period summary to Account Detail, exact selected pair values, coverage gaps, pair navigation, and attribution labels.
+4. **Integration and release:** update JSON/CLI/docs, run contract and terminal-frame tests, validate provider call budgets, and perform hands-on monochrome and supported-size checks.
 
 Rust packaging: build a native `ssteak` executable for the user's machine. macOS Apple Silicon is the confirmed first supported target; other operating systems and public binary distribution are not required initially. Building from source requires the pinned Rust toolchain; running the resulting executable should not require Rust, a database server, or an application runtime. Validate actual native library dependencies before release. A single executable does not mean a universal cross-platform binary or the absence of a local data file.
 
@@ -342,12 +359,16 @@ Confirmed decisions and remaining recommendations:
 | Network | Confirmed | Mainnet only in v1; no cluster or endpoint selection. |
 | JSON mode | Confirmed | Versioned one-shot `--json` output ships in v1. |
 | Storage | Confirmed | SQLite local persistence for cached state, rewards, and query coverage; no DuckDB or database server. |
-| First-release depth | Confirmed | Current account state and bounded inflation reward history; defer lifetime reconstruction and yield ranking. |
+| First-release depth | Confirmed | Current account state and fixed 30-epoch inflation reward history with a current-versus-previous 15-epoch comparison; defer lifetime reconstruction and yield ranking. |
 | Dashboard layout | Frozen engineering default | Summary, attention, scrollable accounts, contextual detail, and collapsible secondary sections. |
 | UX requirement | Confirmed | Good terminal-native UI and intuitive interaction are part of v1. |
 | Refresh | Confirmed | Manual refresh after initial cache/stale-data loading; no polling. |
 | Interaction details | Frozen engineering default | Discoverable keyboard controls, address switching, responsive 80×24 minimum layout; transitions defined in docs/contracts/behavior.md. |
-| Reward default | Confirmed | Latest completed epoch; `--epochs N`, range 1–100. |
+| Reward window | Confirmed | Always the latest 30 completed epochs: current 15 plus previous 15; `--epochs` is removed. |
+| Period comparison | Confirmed | Per stake account: paired recorded epochs only; subtotal difference and percent change, and mean annualized account-return estimate change; descriptive, never a ranking or forecast. |
+| Reward visualization | Confirmed (revised) | Overlaid current-versus-previous 15-epoch chart for the selected stake account in the always-visible Account Detail panel, with exact keyboard-selected pair details. |
+| Return estimate | Confirmed | Per-account annualized return estimate using pre-reward account balance and a fixed nominal two-day epoch; never labeled validator/staking APY. |
+| Validator lifetime total | Deferred | Requires historical delegation reconstruction; do not claim total rewards since staking with a validator. |
 | Activation precision | Confirmed | Display Unknown until validated; exact calculations deferred from the v1 critical path. |
 | First platform | Confirmed | macOS Apple Silicon; locally built executable. |
 
@@ -355,20 +376,20 @@ Then freeze in prerequisite beads: Rust toolchain/dependency versions, exact com
 
 ### 11.1 Remaining technical gates
 
-The application contract is frozen in `docs/contracts/behavior.md` and
-`docs/contracts/report.schema.json`; example reports are synthetic fixtures, not
-live evidence. Changes must preserve the confirmed scope and update these contracts
-and tests together. Rust 1.99.0 is pinned in `rust-toolchain.toml`.
+The application contract in `docs/contracts/behavior.md`, report schema, and
+examples describe schema version 2 with the 30-epoch window and the FR-16
+comparison. Version 2 never shipped, so it was amended in place; version-1 fixtures
+stay for compatibility testing and mixed schema semantics are rejected. Rust 1.99.0 remains pinned in `rust-toolchain.toml`.
 
-Storage contract tasks must still freeze DDL, direct snapshots, comparable generation
-ordering across processes, conflicting numeric reward policy, path overrides, and
-backup retention. Provider limits and budgets require evidence from the capability
-spike. Each dependent bead stays blocked on its relevant gate. A fixture-only TUI
-slice can proceed independently of live access after its domain/CLI prerequisites.
+The durable reward rows already contain the exact inputs needed for FR-14 and
+FR-16; the derived estimate and comparison do not require a storage migration unless the approved schema
+design proves otherwise. Provider-call budgets must be rechecked for the mandatory
+30-epoch window before release. Each dependent bead stays blocked on the contract
+task, and the TUI graph stays blocked on the domain/window task.
 
 ## 12. Evidence and references
 
-Prior context: SolSteak dashboard discussion (27 September); stake discovery and reward history discussions (30 September); Elixir and Helius discussions (6 October). Prior assistant recommendations are not treated as user-approved requirements. On 7 October the user explicitly selected local personal usage, their own Helius API key, Rust, and `ssteak -a <address>`; these supersede conflicting earlier proposals. The subsequent user clarification requires an interactive TUI with intuitive terminal UX/UI, superseding the one-shot report default and full-screen UI exclusion in v0.2. The user then selected SQLite local persistence after comparison with DuckDB; v0.4 makes SQLite required. The user subsequently accepted macOS Apple Silicon, mainnet-only direct access, manual refresh, one completed reward epoch by default (range 1–100), and the exclusions; required JSON in v1; and approved Unknown for exact activation amounts until validated. Version 0.5 records those decisions.
+Prior context: SolSteak dashboard discussion (27 September); stake discovery and reward history discussions (30 September); Elixir and Helius discussions (6 October). Prior assistant recommendations are not treated as user-approved requirements. On 7 October the user explicitly selected local personal usage, their own Helius API key, Rust, and `ssteak -a <address>`; these supersede conflicting earlier proposals. The subsequent user clarification requires an interactive TUI with intuitive terminal UX/UI, superseding the one-shot report default and full-screen UI exclusion in v0.2. The user then selected SQLite local persistence after comparison with DuckDB; v0.4 makes SQLite required. The user subsequently accepted macOS Apple Silicon, mainnet-only direct access, manual refresh, one completed reward epoch by default (range 1–100), required JSON in v1, and Unknown for exact activation amounts until validated. Version 0.5 records those decisions. Version 0.6 supersedes the configurable reward lookback with a fixed reward window and adds the per-account annualized return estimate and reward chart defined in FR-14 and FR-15. Version 0.7 (7 October 2026) extends the window to the latest 30 completed epochs and adds the FR-16 comparison of the most recent 15 epochs against the preceding 15; the user selected an overlaid chart by pair position, subtotal and mean-estimate change over paired recorded epochs only, and an in-place amendment of report schema version 2, which had not shipped.
 
 Current official documentation checked on 7 October 2026:
 

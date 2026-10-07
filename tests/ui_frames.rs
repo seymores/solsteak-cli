@@ -9,7 +9,6 @@ fn state() -> State {
     let mut state = State::new(
         &Options {
             address: "11111111111111111111111111111111".into(),
-            epochs: 1,
             json: false,
             offline: true,
             refresh: false,
@@ -52,13 +51,10 @@ fn exact_amounts_warnings_and_resize_survive_in_monochrome() {
         assert!(text.contains("showing 1 of 1"));
         assert_eq!(s.selected, 0);
     }
-    s.handle_event(Event::Key(KeyEvent::new(
-        KeyCode::Enter,
-        KeyModifiers::NONE,
-    )));
+    // No key is needed: the selected account's detail is always on screen.
     for (w, h) in [(120, 35), (80, 24)] {
         let text = frame(&mut s, w, h);
-        assert!(text.contains("Account detail"));
+        assert!(text.contains("Account Detail"));
         assert!(text.contains("11111111111111111111111111111111"));
     }
     s.handle_event(Event::Key(KeyEvent::new(

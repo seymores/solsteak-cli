@@ -8,7 +8,6 @@ fn state() -> State {
     State::new(
         &Options {
             address: "11111111111111111111111111111111".into(),
-            epochs: 1,
             json: false,
             offline: false,
             refresh: false,
@@ -43,10 +42,8 @@ fn text_shortcuts_generation_and_overlay_precedence() {
     assert!(s.report.is_none());
     assert!(!s.apply_generation(0, report()));
     assert!(s.apply_generation(1, report()));
-    key(&mut s, KeyCode::Enter);
-    assert!(s.detail);
-    assert_eq!(key(&mut s, KeyCode::Char('q')), Action::None);
-    assert!(!s.detail);
+    // Account detail is always visible, so Enter does nothing on the table.
+    assert_eq!(key(&mut s, KeyCode::Enter), Action::None);
     key(&mut s, KeyCode::Char('?'));
     assert_eq!(key(&mut s, KeyCode::Char('q')), Action::None);
     assert_eq!(key(&mut s, KeyCode::Char('q')), Action::Quit(0));

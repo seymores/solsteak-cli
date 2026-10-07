@@ -31,7 +31,6 @@ pub struct Report {
 #[serde(deny_unknown_fields)]
 pub struct Input {
     pub address: String,
-    pub epochs: u16,
     pub offline: bool,
 }
 
@@ -56,6 +55,9 @@ pub struct Data {
     pub accounts: Vec<Account>,
     pub validators: Vec<Validator>,
     pub rewards: Vec<EpochReward>,
+    // Absent in snapshots saved before the comparison existed; always recomputed.
+    #[serde(default)]
+    pub comparisons: Vec<Comparison>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -131,6 +133,65 @@ pub struct RewardEntry {
     pub state: String,
     pub latest_attempt: String,
     pub record: Option<RewardRecord>,
+    pub account_return: Option<AccountReturn>,
+}
+
+/// Derived per account and epoch (FR-14); never persisted or combined across accounts.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AccountReturn {
+    pub pre_reward_balance_lamports: String,
+    pub annualized_percent: String,
+}
+
+/// Per-account current-versus-previous period comparison (FR-16); never persisted.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Comparison {
+    pub address: String,
+    pub compared_pairs: usize,
+    pub left_out_pairs: usize,
+    pub current_subtotal_lamports: Option<String>,
+    pub previous_subtotal_lamports: Option<String>,
+    pub difference_lamports: Option<String>,
+    pub percent_change: Option<String>,
+    pub estimate_pairs: usize,
+    pub current_mean_estimate_percent: Option<String>,
+    pub previous_mean_estimate_percent: Option<String>,
+    pub estimate_difference_pp: Option<String>,
+}
+
+/// `Ok(None)` is a zero denominator (Unknown, valid response); `Err` is an invalid
+/// response (reward above post-balance, or a result that is not representable).
+pub fn annualized_return(
+    amount: u64,
+    post_balance: u64,
+) -> Result<Option<AccountReturn>, DomainError> {
+    Ok(
+        annualized_percent(amount, post_balance)?.map(|(pre, percent)| AccountReturn {
+            pre_reward_balance_lamports: pre.to_string(),
+            annualized_percent: format!("{percent:.4}"),
+        }),
+    )
+}
+
+/// Unrounded estimate with its pre-reward balance; the one place the formula lives.
+pub fn annualized_percent(
+    amount: u64,
+    post_balance: u64,
+) -> Result<Option<(u64, f64)>, DomainError> {
+    let pre = post_balance
+        .checked_sub(amount)
+        .ok_or(DomainError("Reward exceeds the post-reward balance."))?;
+    if pre == 0 {
+        return Ok(None);
+    }
+    // Two-day nominal epochs, 365-day year. Only this display percentage uses a float.
+    let percent = ((1.0 + amount as f64 / pre as f64).powf(182.5) - 1.0) * 100.0;
+    if !percent.is_finite() || percent >= 1e12 {
+        return Err(DomainError("Annualized return is not representable."));
+    }
+    Ok(Some((pre, percent)))
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

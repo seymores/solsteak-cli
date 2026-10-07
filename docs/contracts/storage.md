@@ -79,7 +79,9 @@ serializes independent processes. No network call takes place in a transaction.
 
 `Store::open`, `path`, `load_report(address)`, `save_report(report)`,
 `reward(network,address,epoch)`, and `commit_reward_batch(network,attempts)` are the
-public interface. Report values use schema-v1 JSON at this persistence boundary.
+public interface. Report values use schema-v2 JSON at this persistence boundary (v1 snapshot
+reports are not served as v2 data; reward rows are reused; see behavior.md
+Version compatibility).
 `load_report` selects the last complete baseline, otherwise last partial report;
 it overlays latest discovery-attempt coverage without merging membership and
 uses the network last-observed epoch (including observations of other addresses).

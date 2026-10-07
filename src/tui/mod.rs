@@ -2,7 +2,7 @@
 pub mod render;
 pub mod state;
 pub use render::draw;
-pub use state::{Action, Focus, Overlay, Sort, State};
+pub use state::{Action, Focus, Graph, Overlay, Sort, State};
 
 use crossterm::{
     cursor::{Hide, Show},
@@ -133,14 +133,7 @@ fn start_worker(options: Options, generation: u64, key: Option<String>) -> Worke
                         &options,
                         &store,
                         client.as_ref(),
-                        &RequestContext::new(
-                            if options.epochs == 1 {
-                                Duration::from_secs(30)
-                            } else {
-                                Duration::from_secs(120)
-                            },
-                            Arc::clone(&worker_cancel),
-                        ),
+                        &RequestContext::new(crate::rewards::DEADLINE, Arc::clone(&worker_cancel)),
                         options.refresh,
                         |report| send_report(&send, generation, report),
                     )

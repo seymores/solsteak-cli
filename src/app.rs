@@ -99,7 +99,6 @@ pub fn inspect(
             })?;
             report.input = Some(Input {
                 address: options.address.clone(),
-                epochs: options.epochs,
                 offline: options.offline,
             });
             report.generated_at = now();
@@ -111,7 +110,7 @@ pub fn inspect(
                 data.epoch_kind = "last_observed".into();
                 data.stale = true;
             }
-            hydrate(&mut report, store, options)?;
+            hydrate(&mut report, store)?;
             finish(&mut report, options)?;
             progress(report.clone());
         }
@@ -144,7 +143,7 @@ pub fn inspect(
         client.verify_mainnet(context)?;
         report.network.genesis_hash = Some(MAINNET_GENESIS.into());
         let (mut epoch, epoch_source) = read_epoch(client, context)?;
-        let window = rewards::completed_epochs(epoch, options.epochs);
+        let window = rewards::completed_epochs(epoch);
         // Freshness uses observation times, never the time a cached report was read.
         let reusable = cache_eligible
             && !force_current
@@ -316,7 +315,7 @@ fn current(
         input_exists: discovery.input_exists,
         epoch: epoch.to_string(),
         epoch_kind: "finalized".into(),
-        requested_epochs: rewards::completed_epochs(epoch, options.epochs)
+        requested_epochs: rewards::completed_epochs(epoch)
             .iter()
             .map(u64::to_string)
             .collect(),
@@ -331,6 +330,7 @@ fn current(
         accounts: discovery.accounts,
         validators: vec![],
         rewards: vec![],
+        comparisons: vec![],
     });
     if report.coverage.as_ref().unwrap().discovery.displayed == "not_available"
         && previous.data.is_none()
@@ -403,7 +403,7 @@ fn current(
     Ok(())
 }
 
-fn hydrate(report: &mut Report, store: &Store, options: &Options) -> Result<()> {
+fn hydrate(report: &mut Report, store: &Store) -> Result<()> {
     let epoch = report
         .data
         .as_ref()
@@ -411,7 +411,7 @@ fn hydrate(report: &mut Report, store: &Store, options: &Options) -> Result<()> 
         .epoch
         .parse::<u64>()
         .map_err(|_| error("STORAGE_FAILURE", "Saved epoch is invalid."))?;
-    let window = rewards::completed_epochs(epoch, options.epochs);
+    let window = rewards::completed_epochs(epoch);
     hydrate_window(report, store, &window)
 }
 fn hydrate_window(report: &mut Report, store: &Store, window: &[u64]) -> Result<()> {
@@ -431,7 +431,7 @@ fn hydrate_window(report: &mut Report, store: &Store, window: &[u64]) -> Result<
         for address in &addresses {
             entries.push(cached_entry(report, store, address, epoch)?);
         }
-        let (reward, coverage) = rewards::aggregate_epoch(epoch, entries)?;
+        let (reward, coverage, _) = rewards::aggregate_epoch(epoch, entries)?;
         report.data.as_mut().unwrap().rewards.push(reward);
         report.coverage.as_mut().unwrap().rewards.push(coverage);
     }
@@ -448,6 +448,7 @@ fn cached_entry(
         state: "not_queried".into(),
         latest_attempt: "not_queried".into(),
         record: None,
+        account_return: None,
     };
     if let Some(saved) = store.reward(MAINNET_GENESIS, address, epoch)? {
         entry.latest_attempt = saved.latest_attempt.clone();
@@ -510,6 +511,7 @@ fn fetch_rewards(
                                 state: "failed".into(),
                                 latest_attempt: "failed".into(),
                                 record: None,
+                                account_return: None,
                             })
                             .collect();
                         (entries, None, Some(e))
@@ -582,13 +584,22 @@ fn fetch_rewards(
 fn finish(report: &mut Report, options: &Options) -> Result<()> {
     if let (Some(data), Some(coverage)) = (&mut report.data, &mut report.coverage) {
         coverage.rewards.clear();
+        let mut invalid = vec![];
         for epoch in &mut data.rewards {
-            let (value, count) = rewards::aggregate_epoch(
+            let (value, count, bad) = rewards::aggregate_epoch(
                 parse_amount(&epoch.epoch)?,
                 std::mem::take(&mut epoch.entries),
             )?;
             *epoch = value;
             coverage.rewards.push(count);
+            invalid.extend(bad);
+        }
+        let (comparisons, bad) = rewards::compare(&data.rewards, &data.accounts)?;
+        data.comparisons = comparisons;
+        for e in invalid.into_iter().chain(bad) {
+            if !report.errors.contains(&e) {
+                report.errors.push(e);
+            }
         }
         let latest = data
             .rewards
@@ -605,18 +616,19 @@ fn finish(report: &mut Report, options: &Options) -> Result<()> {
         )?;
         report.warnings =
             validators::findings(&data.accounts, &data.validators, coverage, &report.sources);
-        if data.requested_epochs.len() < usize::from(options.epochs) {
+        if (data.requested_epochs.len() as u64) < rewards::WINDOW {
             report.warnings.push(Finding {
                 code: "EPOCH_RANGE_SHORTENED".into(),
                 severity: "info".into(),
                 address: None,
                 evidence: vec![format!(
-                    "{} completed epochs are available.",
-                    data.requested_epochs.len()
+                    "Only {} completed epochs exist; the fixed window is {}.",
+                    data.requested_epochs.len(),
+                    rewards::WINDOW
                 )],
                 observed_at: now(),
                 slot: None,
-                message: "Fewer completed epochs exist than requested.".into(),
+                message: "Showing all available completed epochs.".into(),
             });
         }
         for e in &report.errors {

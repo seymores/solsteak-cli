@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "input": {
+    "address": "11111111111111111111111111111111",
+    "epochs": 1,
+    "offline": false
+  },
+  "network": {
+    "cluster": "mainnet",
+    "genesis_hash": "11111111111111111111111111111111"
+  },
+  "generated_at": 1791360000,
+  "status": "complete",
+  "data": {
+    "selection": "authority",
+    "input_exists": false,
+    "epoch": "900",
+    "epoch_kind": "finalized",
+    "requested_epochs": [
+      "899"
+    ],
+    "stale": false,
+    "snapshot_kind": "latest_complete",
+    "summary": {
+      "account_count": 0,
+      "validator_count": 0,
+      "balance_lamports": "0",
+      "withdraw_authority_lamports": "0",
+      "staker_only_lamports": "0",
+      "delegated_lamports": "0",
+      "latest_reward_lamports": "0",
+      "amount_scope": "total"
+    },
+    "accounts": [],
+    "validators": [],
+    "rewards": [
+      {
+        "epoch": "899",
+        "subtotal_lamports": "0",
+        "entries": []
+      }
+    ]
+  },
+  "coverage": {
+    "discovery": {
+      "displayed": "complete",
+      "latest_attempt": "complete",
+      "staker_query": "succeeded",
+      "withdrawer_query": "succeeded"
+    },
+    "validators": "complete",
+    "rewards": [
+      {
+        "epoch": "899",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "discovery",
+      "provider": "helius",
+      "observed_at": 1791360000,
+      "slot": "400000000",
+      "commitment": "finalized",
+      "decoder_version": "stake-v1",
+      "cached": false
+    }
+  ],
+  "warnings": [],
+  "errors": []
+}

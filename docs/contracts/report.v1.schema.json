@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:ssteak:report:2",
+  "$id": "urn:ssteak:report:1",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -17,7 +17,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": 2
+      "const": 1
     },
     "input": {
       "anyOf": [
@@ -26,11 +26,17 @@
           "additionalProperties": false,
           "required": [
             "address",
+            "epochs",
             "offline"
           ],
           "properties": {
             "address": {
               "$ref": "#/$defs/address"
+            },
+            "epochs": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
             },
             "offline": {
               "type": "boolean"
@@ -151,6 +157,7 @@
           "enum": [
             "INVALID_ARGUMENTS",
             "INVALID_ADDRESS",
+            "INVALID_EPOCHS",
             "MISSING_API_KEY",
             "INVALID_API_KEY",
             "TERMINAL_REQUIRED",
@@ -618,8 +625,7 @@
         "address",
         "state",
         "latest_attempt",
-        "record",
-        "account_return"
+        "record"
       ],
       "properties": {
         "address": {
@@ -650,16 +656,6 @@
               "type": "null"
             }
           ]
-        },
-        "account_return": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/account_return"
-            },
-            {
-              "type": "null"
-            }
-          ]
         }
       },
       "allOf": [
@@ -681,9 +677,6 @@
           "else": {
             "properties": {
               "record": {
-                "type": "null"
-              },
-              "account_return": {
                 "type": "null"
               }
             }
@@ -894,8 +887,7 @@
                 "minimum": 0
               }
             }
-          },
-          "maxItems": 30
+          }
         }
       }
     },
@@ -913,8 +905,7 @@
         "summary",
         "accounts",
         "validators",
-        "rewards",
-        "comparisons"
+        "rewards"
       ],
       "properties": {
         "selection": {
@@ -944,8 +935,6 @@
         },
         "requested_epochs": {
           "type": "array",
-          "maxItems": 30,
-          "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/u64"
           }
@@ -978,151 +967,7 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/epoch_reward"
-          },
-          "maxItems": 30
-        },
-        "comparisons": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/comparison"
           }
-        }
-      }
-    },
-    "account_return": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "pre_reward_balance_lamports",
-        "annualized_percent"
-      ],
-      "properties": {
-        "pre_reward_balance_lamports": {
-          "$ref": "#/$defs/u64"
-        },
-        "annualized_percent": {
-          "type": "string",
-          "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{4}$"
-        }
-      }
-    },
-    "sint": {
-      "type": "string",
-      "pattern": "^(0|-?[1-9][0-9]*)$",
-      "maxLength": 40
-    },
-    "percent": {
-      "type": "string",
-      "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{4}$"
-    },
-    "signed_percent": {
-      "type": "string",
-      "pattern": "^-?(0|[1-9][0-9]{0,11})\\.[0-9]{4}$"
-    },
-    "comparison": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "address",
-        "compared_pairs",
-        "left_out_pairs",
-        "current_subtotal_lamports",
-        "previous_subtotal_lamports",
-        "difference_lamports",
-        "percent_change",
-        "estimate_pairs",
-        "current_mean_estimate_percent",
-        "previous_mean_estimate_percent",
-        "estimate_difference_pp"
-      ],
-      "properties": {
-        "address": {
-          "$ref": "#/$defs/address"
-        },
-        "compared_pairs": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 15
-        },
-        "left_out_pairs": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 15
-        },
-        "current_subtotal_lamports": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/uint"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "previous_subtotal_lamports": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/uint"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "difference_lamports": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/sint"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "percent_change": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/signed_percent"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "estimate_pairs": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 15
-        },
-        "current_mean_estimate_percent": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/percent"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "previous_mean_estimate_percent": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/percent"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "estimate_difference_pp": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/signed_percent"
-            },
-            {
-              "type": "null"
-            }
-          ]
         }
       }
     }

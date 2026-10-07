@@ -32,7 +32,7 @@ fn json_error(output: &Output, exit: i32, code: &str) -> serde_json::Value {
     assert!(!output.stdout.contains(&0x1b));
     let report: serde_json::Value =
         serde_json::from_slice(&output.stdout).expect("exactly one JSON value");
-    assert_eq!(report["schema_version"], 1);
+    assert_eq!(report["schema_version"], 2);
     assert_eq!(report["status"], "error");
     assert_eq!(report["errors"][0]["code"], code);
     assert!(report["data"].is_null());
@@ -53,12 +53,14 @@ fn help_and_version_work_without_credentials_or_terminal_even_with_json() {
         if flag.contains("help") || flag == "-h" {
             for hint in [
                 "--address",
-                "--epochs",
                 "--offline",
                 "--refresh",
                 "--no-color",
                 "--json",
                 "HELIUS_API_KEY",
+                "latest 30 completed epochs",
+                "annualized account return estimate",
+                "historical validator attribution is unverified",
             ] {
                 assert!(text.contains(hint), "missing {hint}: {text}");
             }
@@ -94,14 +96,24 @@ fn malformed_json_arguments_are_one_safe_object() {
 }
 
 #[test]
-fn rejects_out_of_range_or_malformed_epochs() {
-    for epochs in ["0", "101", "-1", "1.5", "abc", "65536"] {
-        json_error(
-            &run(&["-a", ADDRESS, "--epochs", epochs, "--json"], None),
-            2,
-            "INVALID_ARGUMENTS",
-        );
+fn removed_epochs_flag_is_rejected_before_side_effects() {
+    for args in [
+        vec!["--epochs", "1"],
+        vec!["--epochs", "15"],
+        vec!["--epochs=15"],
+        vec!["--epochs"],
+    ] {
+        let mut full = vec!["-a", ADDRESS, "--json"];
+        full.extend(args);
+        let report = json_error(&run(&full, None), 2, "INVALID_ARGUMENTS");
+        assert!(report["input"].is_null());
     }
+    let output = run(&["--help"], None);
+    assert!(
+        !String::from_utf8(output.stdout)
+            .unwrap()
+            .contains("--epochs")
+    );
 }
 
 #[test]
@@ -161,8 +173,8 @@ fn piped_interactive_mode_explains_explicit_json_mode() {
 fn valid_online_options_parse_without_contacting_a_provider() {
     // Arbitrary 32-byte keys must be accepted without an on-curve restriction.
     let arbitrary = bs58::encode([255u8; 32]).into_string();
-    for (address, epochs) in [(ADDRESS, "1"), (arbitrary.as_str(), "100")] {
-        let args = ["-a", address, "--epochs", epochs, "--json", "--no-color"]
+    for address in [ADDRESS, arbitrary.as_str()] {
+        let args = ["-a", address, "--json", "--no-color"]
             .into_iter()
             .map(std::ffi::OsString::from)
             .collect::<Vec<_>>();
@@ -170,7 +182,6 @@ fn valid_online_options_parse_without_contacting_a_provider() {
             panic!("expected options")
         };
         assert_eq!(options.address, address);
-        assert_eq!(options.epochs, epochs.parse::<u16>().unwrap());
         assert!(options.json);
     }
     let report = json_error(
@@ -178,7 +189,7 @@ fn valid_online_options_parse_without_contacting_a_provider() {
         4,
         "OFFLINE_MISS",
     );
-    assert_eq!(report["input"]["epochs"], 1);
+    assert!(report["input"].get("epochs").is_none());
     assert_eq!(report["input"]["offline"], true);
 }
 

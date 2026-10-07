@@ -1,8 +1,8 @@
 use base64::{Engine, engine::general_purpose::STANDARD};
 use serde_json::{Value, json};
 use ssteak::domain::{
-    Report, authority_relationship, checked_total, decode_stake, format_sol, parse_amount,
-    summarize, validate_address,
+    Report, annualized_return, authority_relationship, checked_total, decode_stake, format_sol,
+    parse_amount, summarize, validate_address,
 };
 
 const ADDRESS: &str = "11111111111111111111111111111111";
@@ -189,7 +189,8 @@ fn formatting_addresses_and_wire_reports_preserve_contract() {
         include_str!("../docs/contracts/examples/empty.json"),
         include_str!("../docs/contracts/examples/offline.json"),
         include_str!("../docs/contracts/examples/error.json"),
-        include_str!("../docs/contracts/examples/short-lookback.json"),
+        include_str!("../docs/contracts/examples/short-window.json"),
+        include_str!("../docs/contracts/examples/short-previous.json"),
     ] {
         let report: Report = serde_json::from_str(raw).unwrap();
         assert_eq!(
@@ -206,5 +207,49 @@ fn arithmetic_checks_boundaries_and_rejects_noncanonical_amounts() {
     assert_eq!(parse_amount(&u64::MAX.to_string()).unwrap(), u64::MAX);
     for value in ["", "+1", "01", "-1", "1.0", "18446744073709551616"] {
         assert!(parse_amount(value).is_err());
+    }
+}
+
+#[test]
+fn annualized_return_follows_fr14_for_edge_inputs() {
+    let pct = |amount, post| annualized_return(amount, post).unwrap().unwrap();
+    let estimate = pct(1_000_000, 100_001_000_000);
+    assert_eq!(estimate.pre_reward_balance_lamports, "100000000000");
+    assert_eq!(estimate.annualized_percent, "0.1827");
+    // A zero reward with a positive denominator is a valid 0%, even at u64::MAX.
+    assert_eq!(pct(0, 1).annualized_percent, "0.0000");
+    let big = pct(0, u64::MAX);
+    assert_eq!(big.pre_reward_balance_lamports, u64::MAX.to_string());
+    assert_eq!(big.annualized_percent, "0.0000");
+    // Zero denominator is Unknown, not an error and not a percentage.
+    assert_eq!(annualized_return(5, 5).unwrap(), None);
+    // Reward above the post-balance underflows; unrepresentable results are invalid.
+    assert!(annualized_return(6, 5).is_err());
+    assert!(annualized_return(1, 2).is_err());
+}
+
+#[test]
+fn contract_examples_match_the_calculated_estimates_and_comparisons() {
+    use ssteak::rewards::{aggregate_epoch, compare};
+    for raw in [
+        include_str!("../docs/contracts/examples/complete.json"),
+        include_str!("../docs/contracts/examples/partial.json"),
+        include_str!("../docs/contracts/examples/offline.json"),
+        include_str!("../docs/contracts/examples/empty.json"),
+        include_str!("../docs/contracts/examples/short-window.json"),
+        include_str!("../docs/contracts/examples/short-previous.json"),
+    ] {
+        let report: Report = serde_json::from_str(raw).unwrap();
+        let data = report.data.unwrap();
+        for epoch in &data.rewards {
+            let entries = epoch.entries.clone();
+            let (again, _, invalid) =
+                aggregate_epoch(epoch.epoch.parse().unwrap(), entries).unwrap();
+            assert!(invalid.is_empty());
+            assert_eq!(&again, epoch);
+        }
+        let (comparisons, errors) = compare(&data.rewards, &data.accounts).unwrap();
+        assert!(errors.is_empty());
+        assert_eq!(comparisons, data.comparisons);
     }
 }

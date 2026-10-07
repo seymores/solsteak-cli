@@ -325,6 +325,8 @@ impl Store {
                 [address],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?,r.get(4)?))).optional()?;
             let Some((saved,attempt,displayed_id,attempt_id,epoch))=saved else { return Ok(None); };
             let mut report:Value=serde_json::from_str(&saved)?;
+            // Version-1 snapshots are never served as v2 data; rewards are reused by key.
+            if report["schema_version"]!=2 || serde_json::from_str::<Value>(&attempt)?["schema_version"]!=2 { return Ok(None); }
             if report["data"]["epoch"]!=epoch { report["data"]["stale"]=json!(true); }
             report["data"]["epoch"]=json!(epoch);
             report["data"]["epoch_kind"]=json!("last_observed");
@@ -378,7 +380,7 @@ fn clean(value: &Value) -> bool {
 }
 fn validate_report(report: &Value) -> Result<()> {
     let parsed: crate::domain::Report = serde_json::from_value(report.clone())?;
-    if parsed.schema_version != 1 || parsed.network.cluster != "mainnet" || !clean(report) {
+    if parsed.schema_version != 2 || parsed.network.cluster != "mainnet" || !clean(report) {
         return Err(StorageError::InvalidData);
     }
     let input = parsed.input.ok_or(StorageError::InvalidData)?;

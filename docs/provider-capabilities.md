@@ -25,14 +25,18 @@ No live epoch rollover occurred; bounded reconciliation is verified using mocks.
   method is documented to return all matching accounts; malformed/oversized/error
   responses are failures, never silently truncated successful discovery. Do not
   use incremental `changedSinceSlot` for full membership snapshots.
+- The reward window is fixed at the latest 30 completed epochs (current 15 plus
+  previous 15): about `30 × ceil(A / 10)` reward requests for A accounts, excluding retries, plus
+  genesis, epoch (twice), input/discovery and validator requests. Cached recorded
+  rewards are reused, so a warm load or a one-epoch rollover requests only missing
+  epochs. Live measurement of this budget is recorded in `release-validation.md`.
 - Reward batches contain at most 10 addresses: the size verified here. This is an
   application choice, not a claimed provider maximum. Explicit epoch, positional
   response matching and null/error coverage are mandatory.
 - At most four requests in flight per process; 10-second per-request timeout,
   two retries for transient network/429/5xx errors, cancellable bounded backoff.
   Honor Retry-After only within the remaining operation deadline. No auth retry.
-- 30-second default load budget, 120 seconds when more than one epoch is requested.
-  All operations are cancellable between requests and bounded during requests;
+- 120-second budget for each load of the fixed 30-epoch window (to be rechecked against live 30-epoch timings). All operations are cancellable between requests and bounded during requests;
   deadline produces partial/error data, never account truncation to fake success.
 - 64 MiB response ceiling protects local resources. Exceeding it returns a visible
   incomplete-response error. No hidden top-N account cap.

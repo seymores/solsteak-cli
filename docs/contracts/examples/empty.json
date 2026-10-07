@@ -1,8 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "input": {
     "address": "11111111111111111111111111111111",
-    "epochs": 1,
     "offline": false
   },
   "network": {
@@ -17,7 +16,36 @@
     "epoch": "900",
     "epoch_kind": "finalized",
     "requested_epochs": [
-      "899"
+      "899",
+      "898",
+      "897",
+      "896",
+      "895",
+      "894",
+      "893",
+      "892",
+      "891",
+      "890",
+      "889",
+      "888",
+      "887",
+      "886",
+      "885",
+      "884",
+      "883",
+      "882",
+      "881",
+      "880",
+      "879",
+      "878",
+      "877",
+      "876",
+      "875",
+      "874",
+      "873",
+      "872",
+      "871",
+      "870"
     ],
     "stale": false,
     "snapshot_kind": "latest_complete",
@@ -38,8 +66,154 @@
         "epoch": "899",
         "subtotal_lamports": "0",
         "entries": []
+      },
+      {
+        "epoch": "898",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "897",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "896",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "895",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "894",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "893",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "892",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "891",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "890",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "889",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "888",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "887",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "886",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "885",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "884",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "883",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "882",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "881",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "880",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "879",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "878",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "877",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "876",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "875",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "874",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "873",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "872",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "871",
+        "subtotal_lamports": "0",
+        "entries": []
+      },
+      {
+        "epoch": "870",
+        "subtotal_lamports": "0",
+        "entries": []
       }
-    ]
+    ],
+    "comparisons": []
   },
   "coverage": {
     "discovery": {
@@ -52,6 +226,209 @@
     "rewards": [
       {
         "epoch": "899",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "898",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "897",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "896",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "895",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "894",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "893",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "892",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "891",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "890",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "889",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "888",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "887",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "886",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "885",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "884",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "883",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "882",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "881",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "880",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "879",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "878",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "877",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "876",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "875",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "874",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "873",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "872",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "871",
+        "recorded": 0,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "870",
         "recorded": 0,
         "no_data": 0,
         "failed": 0,

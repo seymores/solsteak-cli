@@ -2,22 +2,28 @@
 
 use std::collections::BTreeSet;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use serde_json::json;
 
 use crate::domain::{
-    DomainError, EpochReward, RewardCoverage, RewardEntry, RewardRecord, Source, checked_total,
-    parse_amount, validate_address,
+    Account, Comparison, DomainError, EpochReward, ReportError, RewardCoverage, RewardEntry,
+    RewardRecord, Source, annualized_percent, annualized_return, checked_total, parse_amount,
+    validate_address,
 };
 use crate::helius::{Helius, REWARD_BATCH_SIZE, RequestContext, RpcError};
 
 static OBSERVATION_ID: AtomicU64 = AtomicU64::new(0);
 
-pub fn completed_epochs(current: u64, count: u16) -> Vec<u64> {
-    (current.saturating_sub(u64::from(count.min(100)))..current)
-        .rev()
-        .collect()
+/// The reward window is fixed: the latest 30 completed epochs, newest first. The
+/// first `PERIOD` are the current period and the rest the previous period.
+pub const WINDOW: u64 = 30;
+pub const PERIOD: usize = 15;
+/// Deadline for one load or refresh of the fixed window.
+pub const DEADLINE: Duration = Duration::from_secs(120);
+
+pub fn completed_epochs(current: u64) -> Vec<u64> {
+    (current.saturating_sub(WINDOW)..current).rev().collect()
 }
 
 pub fn fetch_batch(
@@ -107,6 +113,7 @@ pub fn fetch_batch(
             state: state.into(),
             latest_attempt: state.into(),
             record,
+            account_return: None,
         });
     }
     Ok((entries, source))
@@ -114,8 +121,8 @@ pub fn fetch_batch(
 
 pub fn aggregate_epoch(
     epoch: u64,
-    entries: Vec<RewardEntry>,
-) -> Result<(EpochReward, RewardCoverage), DomainError> {
+    mut entries: Vec<RewardEntry>,
+) -> Result<(EpochReward, RewardCoverage, Vec<ReportError>), DomainError> {
     let mut coverage = RewardCoverage {
         epoch: epoch.to_string(),
         recorded: 0,
@@ -125,7 +132,8 @@ pub fn aggregate_epoch(
     };
     let mut addresses = BTreeSet::new();
     let mut total = 0u128;
-    for entry in &entries {
+    let mut invalid = vec![];
+    for entry in &mut entries {
         if !validate_address(&entry.address) || !addresses.insert(&entry.address) {
             return Err(DomainError("Invalid or duplicate reward account."));
         }
@@ -144,14 +152,33 @@ pub fn aggregate_epoch(
                         "Reward metadata does not match the requested epoch.",
                     ));
                 }
-                parse_amount(&record.post_balance_lamports)?;
+                let post = parse_amount(&record.post_balance_lamports)?;
                 parse_amount(&record.effective_slot)?;
-                total = checked_total([total, u128::from(parse_amount(&record.amount_lamports)?)])?;
+                let amount = parse_amount(&record.amount_lamports)?;
+                total = checked_total([total, u128::from(amount)])?;
                 coverage.recorded += 1;
+                // An unusable estimate stays Unknown; the recorded reward is kept.
+                entry.account_return = annualized_return(amount, post).unwrap_or_else(|e| {
+                    invalid.push(ReportError {
+                        code: "INVALID_RESPONSE".into(),
+                        message: format!("Epoch {epoch} return estimate unavailable: {}", e.0),
+                        address: Some(entry.address.clone()),
+                    });
+                    None
+                });
             }
-            ("no_data", None) => coverage.no_data += 1,
-            ("failed", None) => coverage.failed += 1,
-            ("not_queried", None) => coverage.not_queried += 1,
+            ("no_data", None) => {
+                coverage.no_data += 1;
+                entry.account_return = None;
+            }
+            ("failed", None) => {
+                coverage.failed += 1;
+                entry.account_return = None;
+            }
+            ("not_queried", None) => {
+                coverage.not_queried += 1;
+                entry.account_return = None;
+            }
             _ => return Err(DomainError("Reward state and record disagree.")),
         }
     }
@@ -164,7 +191,117 @@ pub fn aggregate_epoch(
             entries,
         },
         coverage,
+        invalid,
     ))
+}
+
+/// Signed four-digit decimal, never `-0.0000`.
+fn signed_percent(value: f64) -> String {
+    match format!("{value:.4}").as_str() {
+        "-0.0000" => "0.0000".into(),
+        text => text.into(),
+    }
+}
+
+fn recorded_record<'a>(epoch: &'a EpochReward, address: &str) -> Option<&'a RewardRecord> {
+    epoch
+        .entries
+        .iter()
+        .find(|e| e.address == address && e.state == "recorded")
+        .and_then(|e| e.record.as_ref())
+}
+
+/// FR-16 for every account, in order. Only pairs whose two epochs both have a
+/// recorded reward are compared. Returns invalid-response errors for results that
+/// cannot be shown; those values stay Unknown.
+pub fn compare(
+    rewards: &[EpochReward],
+    accounts: &[Account],
+) -> Result<(Vec<Comparison>, Vec<ReportError>), DomainError> {
+    let pairs = rewards.len().saturating_sub(PERIOD).min(PERIOD);
+    let mut errors = vec![];
+    let mut out = vec![];
+    for account in accounts {
+        let (mut current, mut previous, mut compared) = (0u128, 0u128, 0usize);
+        let (mut cur_sum, mut prev_sum, mut estimated) = (0f64, 0f64, 0usize);
+        for i in 0..pairs {
+            let (Some(c), Some(p)) = (
+                recorded_record(&rewards[i], &account.address),
+                recorded_record(&rewards[PERIOD + i], &account.address),
+            ) else {
+                continue;
+            };
+            let (ca, cb) = (
+                parse_amount(&c.amount_lamports)?,
+                parse_amount(&c.post_balance_lamports)?,
+            );
+            let (pa, pb) = (
+                parse_amount(&p.amount_lamports)?,
+                parse_amount(&p.post_balance_lamports)?,
+            );
+            current = checked_total([current, u128::from(ca)])?;
+            previous = checked_total([previous, u128::from(pa)])?;
+            compared += 1;
+            if let (Ok(Some((_, cur))), Ok(Some((_, prev)))) =
+                (annualized_percent(ca, cb), annualized_percent(pa, pb))
+            {
+                cur_sum += cur;
+                prev_sum += prev;
+                estimated += 1;
+            }
+        }
+        let mut comparison = Comparison {
+            address: account.address.clone(),
+            compared_pairs: compared,
+            left_out_pairs: pairs - compared,
+            current_subtotal_lamports: None,
+            previous_subtotal_lamports: None,
+            difference_lamports: None,
+            percent_change: None,
+            estimate_pairs: estimated,
+            current_mean_estimate_percent: None,
+            previous_mean_estimate_percent: None,
+            estimate_difference_pp: None,
+        };
+        if compared > 0 {
+            // Both sums are at most 15 u64 values, so they fit i128 exactly.
+            let difference = current as i128 - previous as i128;
+            comparison.current_subtotal_lamports = Some(current.to_string());
+            comparison.previous_subtotal_lamports = Some(previous.to_string());
+            comparison.difference_lamports = Some(difference.to_string());
+            // Exact integer percent to four digits, rounded half away from zero; a zero
+            // previous subtotal has no division and stays Unknown.
+            let scaled = difference.unsigned_abs() * 1_000_000;
+            if let Some(mut digits) = scaled.checked_div(previous) {
+                if 2 * (scaled % previous) >= previous {
+                    digits += 1;
+                }
+                if digits / 10_000 >= 1_000_000_000_000 {
+                    errors.push(ReportError {
+                        code: "INVALID_RESPONSE".into(),
+                        message: "Period change is not representable.".into(),
+                        address: Some(account.address.clone()),
+                    });
+                } else {
+                    let sign = if difference < 0 && digits != 0 {
+                        "-"
+                    } else {
+                        ""
+                    };
+                    comparison.percent_change =
+                        Some(format!("{sign}{}.{:04}", digits / 10_000, digits % 10_000));
+                }
+            }
+        }
+        if estimated > 0 {
+            let (cur, prev) = (cur_sum / estimated as f64, prev_sum / estimated as f64);
+            comparison.current_mean_estimate_percent = Some(format!("{cur:.4}"));
+            comparison.previous_mean_estimate_percent = Some(format!("{prev:.4}"));
+            comparison.estimate_difference_pp = Some(signed_percent(cur - prev));
+        }
+        out.push(comparison);
+    }
+    Ok((out, errors))
 }
 
 pub(crate) fn observation_source(

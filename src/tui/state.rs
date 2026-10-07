@@ -5,7 +5,8 @@ use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers};
 
 use crate::{
     cli::Options,
-    domain::{Account, Report, validate_address},
+    domain::{Account, Report, Validator, validate_address},
+    rewards::PERIOD,
 };
 
 #[derive(Debug, PartialEq, Eq)]
@@ -20,7 +21,7 @@ pub enum Focus {
     Accounts,
     Attention,
     Validators,
-    Rewards,
+    Detail,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Sort {
@@ -37,6 +38,18 @@ pub enum Overlay {
     Sort,
 }
 
+/// The chart's subject: the selected table row, its current validator and the epoch.
+pub struct Graph<'a> {
+    pub account: &'a Account,
+    pub validator: Option<&'a Validator>,
+    /// Selected pair: an index into `data.rewards` within the current period (0 newest).
+    pub epoch_pos: usize,
+    /// Number of rewards positions in the window (up to 30).
+    pub epochs: usize,
+    /// Number of pair columns: the current period's length (up to 15).
+    pub columns: usize,
+}
+
 pub struct State {
     pub address: String,
     pub offline: bool,
@@ -48,10 +61,10 @@ pub struct State {
     pub notice: Option<String>,
     pub focus: Focus,
     pub overlay: Option<Overlay>,
-    pub detail: bool,
     pub detail_scroll: u16,
     pub validators_expanded: bool,
-    pub rewards_expanded: bool,
+    /// Selected epoch number, kept by identity so refresh and rollover preserve it.
+    pub graph_epoch: Option<String>,
     pub selected: usize,
     pub offset: usize,
     pub page_height: usize,
@@ -77,10 +90,9 @@ impl State {
             notice: None,
             focus: Focus::Accounts,
             overlay: None,
-            detail: false,
             detail_scroll: 0,
             validators_expanded: false,
-            rewards_expanded: false,
+            graph_epoch: None,
             selected: 0,
             offset: 0,
             page_height: 10,
@@ -273,6 +285,46 @@ impl State {
         });
         rows
     }
+    /// Resolve the chart subject from memory; never does I/O.
+    pub fn graph(&self) -> Option<Graph<'_>> {
+        let data = self.report.as_ref()?.data.as_ref()?;
+        let account = self.selected_account()?;
+        let validator = data
+            .validators
+            .iter()
+            .find(|v| account.vote_address.as_deref() == Some(&v.vote_address));
+        let epoch_pos = self
+            .graph_epoch
+            .as_ref()
+            .and_then(|id| data.rewards.iter().position(|r| &r.epoch == id))
+            // After a rollover a remembered epoch may have moved to the previous period.
+            .filter(|&pos| pos < PERIOD)
+            .unwrap_or(0);
+        Some(Graph {
+            account,
+            validator,
+            epoch_pos,
+            epochs: data.rewards.len(),
+            columns: data.rewards.len().min(PERIOD),
+        })
+    }
+    /// Left is an older pair, Right a newer one; clamped, no wrap.
+    fn epoch_key(&mut self, code: KeyCode) {
+        let Some(view) = self.graph() else {
+            return;
+        };
+        let pos = if code == KeyCode::Left {
+            (view.epoch_pos + 1).min(view.columns.saturating_sub(1))
+        } else {
+            view.epoch_pos.saturating_sub(1)
+        };
+        self.graph_epoch = self
+            .report
+            .as_ref()
+            .and_then(|r| r.data.as_ref())
+            .and_then(|d| d.rewards.get(pos))
+            .map(|r| r.epoch.clone());
+    }
     pub fn ensure_visible(&mut self) {
         self.selected = self.selected.min(self.rows.len().saturating_sub(1));
         self.offset = self.offset.min(self.selected);
@@ -321,9 +373,8 @@ impl State {
                                 self.offset = 0;
                                 self.search.clear();
                                 self.validator_search.clear();
-                                self.detail = false;
                                 self.validators_expanded = false;
-                                self.rewards_expanded = false;
+                                self.graph_epoch = None;
                                 self.section_scroll = 0;
                                 self.overlay = None;
                                 self.notice = None;
@@ -394,19 +445,14 @@ impl State {
             return Action::None;
         }
         match key.code {
-            KeyCode::Char('q') if !self.detail => return Action::Quit(0),
-            KeyCode::Esc | KeyCode::Char('q') => {
-                if self.detail {
-                    self.detail = false;
-                    self.detail_scroll = 0;
+            KeyCode::Char('q') => return Action::Quit(0),
+            KeyCode::Esc => {
+                if self.focus == Focus::Validators {
+                    self.validator_search.clear();
                 } else {
-                    if self.focus == Focus::Validators {
-                        self.validator_search.clear();
-                    } else {
-                        self.search.clear();
-                    }
-                    self.rebuild_rows();
+                    self.search.clear();
                 }
+                self.rebuild_rows();
             }
             KeyCode::Char('?') => {
                 self.overlay = Some(Overlay::Help);
@@ -436,25 +482,27 @@ impl State {
             KeyCode::Tab | KeyCode::BackTab => {
                 let focuses = [
                     Focus::Accounts,
+                    Focus::Detail,
                     Focus::Attention,
                     Focus::Validators,
-                    Focus::Rewards,
                 ];
-                let index = focuses.iter().position(|f| *f == self.focus).unwrap();
+                let index = focuses.iter().position(|f| *f == self.focus).unwrap_or(0);
                 let backwards =
                     key.code == KeyCode::BackTab || key.modifiers.contains(KeyModifiers::SHIFT);
                 self.focus = focuses[(index + if backwards { 3 } else { 1 }) % 4];
                 self.section_scroll = 0;
             }
-            KeyCode::Enter => match self.focus {
-                Focus::Accounts => {
-                    self.detail = !self.detail;
-                    self.detail_scroll = 0;
+            KeyCode::Enter => {
+                if self.focus == Focus::Validators {
+                    self.validators_expanded = !self.validators_expanded;
                 }
-                Focus::Validators => self.validators_expanded = !self.validators_expanded,
-                Focus::Rewards => self.rewards_expanded = !self.rewards_expanded,
-                Focus::Attention => {}
-            },
+            }
+            // The chart follows the selected row, so epochs move from table or detail focus.
+            KeyCode::Left | KeyCode::Right
+                if matches!(self.focus, Focus::Accounts | Focus::Detail) =>
+            {
+                self.epoch_key(key.code)
+            }
             KeyCode::Down
             | KeyCode::Char('j')
             | KeyCode::Up
@@ -472,7 +520,7 @@ impl State {
                     key.code,
                     KeyCode::Down | KeyCode::Char('j') | KeyCode::PageDown
                 );
-                if self.detail {
+                if self.focus == Focus::Detail {
                     self.detail_scroll = if key.code == KeyCode::Home {
                         0
                     } else if key.code == KeyCode::End {
@@ -489,6 +537,7 @@ impl State {
                         _ if down => self.selected.saturating_add(count),
                         _ => self.selected.saturating_sub(count),
                     };
+                    self.detail_scroll = 0;
                     self.ensure_visible();
                 } else {
                     self.section_scroll = if key.code == KeyCode::Home {

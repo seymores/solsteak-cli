@@ -1,8 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "input": {
     "address": "11111111111111111111111111111111",
-    "epochs": 1,
     "offline": true
   },
   "network": {
@@ -17,7 +16,36 @@
     "epoch": "900",
     "epoch_kind": "last_observed",
     "requested_epochs": [
-      "899"
+      "899",
+      "898",
+      "897",
+      "896",
+      "895",
+      "894",
+      "893",
+      "892",
+      "891",
+      "890",
+      "889",
+      "888",
+      "887",
+      "886",
+      "885",
+      "884",
+      "883",
+      "882",
+      "881",
+      "880",
+      "879",
+      "878",
+      "877",
+      "876",
+      "875",
+      "874",
+      "873",
+      "872",
+      "871",
+      "870"
     ],
     "stale": true,
     "snapshot_kind": "latest_complete",
@@ -70,12 +98,698 @@
               "epoch": "899",
               "amount_lamports": "0",
               "post_balance_lamports": "18446744073709551615",
-              "effective_slot": "399999999",
+              "effective_slot": "388799999",
               "commission": null,
               "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "18446744073709551615",
+              "annualized_percent": "0.0000"
             }
           }
         ]
+      },
+      {
+        "epoch": "898",
+        "subtotal_lamports": "2898000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "898",
+              "amount_lamports": "2898000",
+              "post_balance_lamports": "100037674000",
+              "effective_slot": "388367999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "100034776000",
+              "annualized_percent": "0.5301"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "897",
+        "subtotal_lamports": "2897000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "897",
+              "amount_lamports": "2897000",
+              "post_balance_lamports": "100034764000",
+              "effective_slot": "387935999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "100031867000",
+              "annualized_percent": "0.5299"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "896",
+        "subtotal_lamports": "2896000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "896",
+              "amount_lamports": "2896000",
+              "post_balance_lamports": "100031856000",
+              "effective_slot": "387503999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "100028960000",
+              "annualized_percent": "0.5298"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "895",
+        "subtotal_lamports": "2895000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "895",
+              "amount_lamports": "2895000",
+              "post_balance_lamports": "100028950000",
+              "effective_slot": "387071999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "100026055000",
+              "annualized_percent": "0.5296"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "894",
+        "subtotal_lamports": "2894000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "894",
+              "amount_lamports": "2894000",
+              "post_balance_lamports": "100026046000",
+              "effective_slot": "386639999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "100023152000",
+              "annualized_percent": "0.5294"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "893",
+        "subtotal_lamports": "2893000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "893",
+              "amount_lamports": "2893000",
+              "post_balance_lamports": "100023144000",
+              "effective_slot": "386207999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "100020251000",
+              "annualized_percent": "0.5293"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "892",
+        "subtotal_lamports": "2892000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "892",
+              "amount_lamports": "2892000",
+              "post_balance_lamports": "100020244000",
+              "effective_slot": "385775999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "100017352000",
+              "annualized_percent": "0.5291"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "891",
+        "subtotal_lamports": "2891000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "891",
+              "amount_lamports": "2891000",
+              "post_balance_lamports": "100017346000",
+              "effective_slot": "385343999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "100014455000",
+              "annualized_percent": "0.5289"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "890",
+        "subtotal_lamports": "2890000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "890",
+              "amount_lamports": "2890000",
+              "post_balance_lamports": "100014450000",
+              "effective_slot": "384911999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "100011560000",
+              "annualized_percent": "0.5287"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "889",
+        "subtotal_lamports": "2889000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "889",
+              "amount_lamports": "2889000",
+              "post_balance_lamports": "100011556000",
+              "effective_slot": "384479999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "100008667000",
+              "annualized_percent": "0.5286"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "888",
+        "subtotal_lamports": "2888000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "888",
+              "amount_lamports": "2888000",
+              "post_balance_lamports": "100008664000",
+              "effective_slot": "384047999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "100005776000",
+              "annualized_percent": "0.5284"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "887",
+        "subtotal_lamports": "2887000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "887",
+              "amount_lamports": "2887000",
+              "post_balance_lamports": "100005774000",
+              "effective_slot": "383615999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "100002887000",
+              "annualized_percent": "0.5282"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "886",
+        "subtotal_lamports": "2886000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "886",
+              "amount_lamports": "2886000",
+              "post_balance_lamports": "100002886000",
+              "effective_slot": "383183999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "100000000000",
+              "annualized_percent": "0.5281"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "885",
+        "subtotal_lamports": "2885000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "885",
+              "amount_lamports": "2885000",
+              "post_balance_lamports": "100000000000",
+              "effective_slot": "382751999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "99997115000",
+              "annualized_percent": "0.5279"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "884",
+        "subtotal_lamports": "2684000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "884",
+              "amount_lamports": "2684000",
+              "post_balance_lamports": "95037576000",
+              "effective_slot": "382319999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "95034892000",
+              "annualized_percent": "0.5167"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "883",
+        "subtotal_lamports": "2683000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "883",
+              "amount_lamports": "2683000",
+              "post_balance_lamports": "95034879000",
+              "effective_slot": "381887999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "95032196000",
+              "annualized_percent": "0.5166"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "882",
+        "subtotal_lamports": "2682000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "882",
+              "amount_lamports": "2682000",
+              "post_balance_lamports": "95032184000",
+              "effective_slot": "381455999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "95029502000",
+              "annualized_percent": "0.5164"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "881",
+        "subtotal_lamports": "2681000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "881",
+              "amount_lamports": "2681000",
+              "post_balance_lamports": "95029491000",
+              "effective_slot": "381023999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "95026810000",
+              "annualized_percent": "0.5162"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "880",
+        "subtotal_lamports": "2680000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "880",
+              "amount_lamports": "2680000",
+              "post_balance_lamports": "95026800000",
+              "effective_slot": "380591999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "95024120000",
+              "annualized_percent": "0.5160"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "879",
+        "subtotal_lamports": "2679000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "879",
+              "amount_lamports": "2679000",
+              "post_balance_lamports": "95024111000",
+              "effective_slot": "380159999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "95021432000",
+              "annualized_percent": "0.5159"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "878",
+        "subtotal_lamports": "2678000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "878",
+              "amount_lamports": "2678000",
+              "post_balance_lamports": "95021424000",
+              "effective_slot": "379727999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "95018746000",
+              "annualized_percent": "0.5157"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "877",
+        "subtotal_lamports": "2677000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "877",
+              "amount_lamports": "2677000",
+              "post_balance_lamports": "95018739000",
+              "effective_slot": "379295999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "95016062000",
+              "annualized_percent": "0.5155"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "876",
+        "subtotal_lamports": "2676000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "876",
+              "amount_lamports": "2676000",
+              "post_balance_lamports": "95016056000",
+              "effective_slot": "378863999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "95013380000",
+              "annualized_percent": "0.5153"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "875",
+        "subtotal_lamports": "2675000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "875",
+              "amount_lamports": "2675000",
+              "post_balance_lamports": "95013375000",
+              "effective_slot": "378431999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "95010700000",
+              "annualized_percent": "0.5151"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "874",
+        "subtotal_lamports": "2674000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "874",
+              "amount_lamports": "2674000",
+              "post_balance_lamports": "95010696000",
+              "effective_slot": "377999999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "95008022000",
+              "annualized_percent": "0.5150"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "873",
+        "subtotal_lamports": "2673000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "873",
+              "amount_lamports": "2673000",
+              "post_balance_lamports": "95008019000",
+              "effective_slot": "377567999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "95005346000",
+              "annualized_percent": "0.5148"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "872",
+        "subtotal_lamports": "2672000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "872",
+              "amount_lamports": "2672000",
+              "post_balance_lamports": "95005344000",
+              "effective_slot": "377135999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "95002672000",
+              "annualized_percent": "0.5146"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "871",
+        "subtotal_lamports": "2671000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "871",
+              "amount_lamports": "2671000",
+              "post_balance_lamports": "95002671000",
+              "effective_slot": "376703999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "95000000000",
+              "annualized_percent": "0.5144"
+            }
+          }
+        ]
+      },
+      {
+        "epoch": "870",
+        "subtotal_lamports": "2670000",
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "recorded",
+            "latest_attempt": "recorded",
+            "record": {
+              "epoch": "870",
+              "amount_lamports": "2670000",
+              "post_balance_lamports": "95000000000",
+              "effective_slot": "376271999",
+              "commission": null,
+              "source_id": "reward"
+            },
+            "account_return": {
+              "pre_reward_balance_lamports": "94997330000",
+              "annualized_percent": "0.5142"
+            }
+          }
+        ]
+      }
+    ],
+    "comparisons": [
+      {
+        "address": "11111111111111111111111111111111",
+        "compared_pairs": 15,
+        "left_out_pairs": 0,
+        "current_subtotal_lamports": "40481000",
+        "previous_subtotal_lamports": "40155000",
+        "difference_lamports": "326000",
+        "percent_change": "0.8119",
+        "estimate_pairs": 15,
+        "current_mean_estimate_percent": "0.4937",
+        "previous_mean_estimate_percent": "0.5155",
+        "estimate_difference_pp": "-0.0218"
       }
     ]
   },
@@ -90,6 +804,209 @@
     "rewards": [
       {
         "epoch": "899",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "898",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "897",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "896",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "895",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "894",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "893",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "892",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "891",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "890",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "889",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "888",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "887",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "886",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "885",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "884",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "883",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "882",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "881",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "880",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "879",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "878",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "877",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "876",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "875",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "874",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "873",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "872",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "871",
+        "recorded": 1,
+        "no_data": 0,
+        "failed": 0,
+        "not_queried": 0
+      },
+      {
+        "epoch": "870",
         "recorded": 1,
         "no_data": 0,
         "failed": 0,
