@@ -1,12 +1,20 @@
 use std::process::{Command, Output};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 const ADDRESS: &str = "11111111111111111111111111111111";
 const SECRET: &str = "test-secret-that-must-not-be-printed";
+static NEXT_HOME: AtomicU64 = AtomicU64::new(0);
 
 fn run(args: &[&str], key: Option<&str>) -> Output {
+    let home = std::env::temp_dir().join(format!(
+        "ssteak-cli-{}-{}",
+        std::process::id(),
+        NEXT_HOME.fetch_add(1, Ordering::Relaxed)
+    ));
     let mut command = Command::new(env!("CARGO_BIN_EXE_ssteak"));
     command
         .args(args)
+        .env("HOME", home)
         .env_remove("HELIUS_API_KEY")
         .env("TERM", "xterm-256color");
     if let Some(key) = key {
