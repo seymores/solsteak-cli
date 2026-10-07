@@ -1,7 +1,7 @@
 {
   "database": "dolt",
   "backend": "dolt",
-  "dolt_mode": "embedded",
+  "dolt_mode": "server",
   "dolt_database": "solsteak_cli",
   "project_id": "3b8c963e-cb84-4b3b-ae0d-ebecff108859"
 }
