@@ -1,0 +1,53 @@
+{
+  "wallet": "9x29Aw3N92EPCX1weRsrKKwAkbLfzw2PGRrm4NbcifEJ",
+  "events": [
+    {
+      "name": "genesis",
+      "seconds": 0.076,
+      "success": true
+    },
+    {
+      "name": "epoch",
+      "seconds": 0.053,
+      "success": true
+    },
+    {
+      "name": "input",
+      "seconds": 0.056,
+      "success": true
+    },
+    {
+      "name": "staker",
+      "seconds": 0.061,
+      "success": true
+    },
+    {
+      "name": "withdrawer",
+      "seconds": 0.103,
+      "success": true
+    },
+    {
+      "name": "rewards-1",
+      "seconds": 0.264,
+      "success": true
+    },
+    {
+      "name": "rewards-100",
+      "seconds": 0.257,
+      "success": true
+    },
+    {
+      "name": "validators",
+      "seconds": 0.146,
+      "success": true
+    },
+    {
+      "name": "epoch-after",
+      "seconds": 0.054,
+      "success": true
+    }
+  ],
+  "genesis": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d",
+  "observed_at": 1791366135,
+  "plan": "unknown; supplied key supports tested methods"
+}

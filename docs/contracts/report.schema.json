@@ -1,0 +1,975 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ssteak:report:1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "input",
+    "network",
+    "generated_at",
+    "status",
+    "data",
+    "coverage",
+    "sources",
+    "warnings",
+    "errors"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "input": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "address",
+            "epochs",
+            "offline"
+          ],
+          "properties": {
+            "address": {
+              "$ref": "#/$defs/address"
+            },
+            "epochs": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "offline": {
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cluster",
+        "genesis_hash"
+      ],
+      "properties": {
+        "cluster": {
+          "const": "mainnet"
+        },
+        "genesis_hash": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/address"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "generated_at": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "enum": [
+        "complete",
+        "partial",
+        "error",
+        "interrupted"
+      ]
+    },
+    "data": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/data"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "coverage": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/coverage"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/error"
+      }
+    }
+  },
+  "$defs": {
+    "uint": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "maxLength": 39
+    },
+    "u64": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "maxLength": 20
+    },
+    "address": {
+      "type": "string",
+      "pattern": "^[1-9A-HJ-NP-Za-km-z]{32,44}$"
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message",
+        "address"
+      ],
+      "properties": {
+        "code": {
+          "enum": [
+            "INVALID_ARGUMENTS",
+            "INVALID_ADDRESS",
+            "INVALID_EPOCHS",
+            "MISSING_API_KEY",
+            "INVALID_API_KEY",
+            "TERMINAL_REQUIRED",
+            "PROVIDER_AUTH",
+            "PROVIDER_RATE_LIMIT",
+            "PROVIDER_TIMEOUT",
+            "PROVIDER_FAILURE",
+            "INVALID_RESPONSE",
+            "WRONG_NETWORK",
+            "DEADLINE",
+            "OFFLINE_MISS",
+            "STORAGE_FAILURE",
+            "UNSUPPORTED_SCHEMA",
+            "EPOCH_INCONSISTENCY",
+            "REWARD_CONFLICT",
+            "INTERNAL",
+            "INTERRUPTED",
+            "NOT_IMPLEMENTED"
+          ]
+        },
+        "message": {
+          "type": "string"
+        },
+        "address": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/address"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "severity",
+        "address",
+        "evidence",
+        "observed_at",
+        "slot",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "enum": [
+            "UNDELEGATED_FUNDS",
+            "DEACTIVATION_REQUESTED",
+            "VALIDATOR_DELINQUENT",
+            "UNSUPPORTED_STATE",
+            "INCOMPLETE_DISCOVERY",
+            "INCOMPLETE_REWARDS",
+            "EPOCH_INCONSISTENCY",
+            "REWARD_CONFLICT",
+            "NOT_SAVED_LOCALLY",
+            "EPOCH_RANGE_SHORTENED"
+          ]
+        },
+        "severity": {
+          "enum": [
+            "info",
+            "warning"
+          ]
+        },
+        "address": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/address"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "observed_at": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "slot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/u64"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "provider",
+        "observed_at",
+        "slot",
+        "commitment",
+        "decoder_version",
+        "cached"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "provider": {
+          "enum": [
+            "helius"
+          ]
+        },
+        "observed_at": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "slot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/u64"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "commitment": {
+          "enum": [
+            "finalized",
+            null
+          ]
+        },
+        "decoder_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cached": {
+          "type": "boolean"
+        }
+      }
+    },
+    "account": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "address",
+        "relationship",
+        "state",
+        "balance_lamports",
+        "delegated_lamports",
+        "rent_reserve_lamports",
+        "undelegated_lamports",
+        "effective_lamports",
+        "activating_lamports",
+        "deactivating_lamports",
+        "staker",
+        "withdrawer",
+        "vote_address",
+        "activation_epoch",
+        "deactivation_epoch",
+        "lockup",
+        "source_id"
+      ],
+      "properties": {
+        "address": {
+          "$ref": "#/$defs/address"
+        },
+        "relationship": {
+          "enum": [
+            "staker",
+            "withdrawer",
+            "both",
+            null
+          ]
+        },
+        "state": {
+          "enum": [
+            "initialized",
+            "delegated",
+            "uninitialized",
+            "rewards_pool",
+            "unsupported"
+          ]
+        },
+        "balance_lamports": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/u64"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "delegated_lamports": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/u64"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rent_reserve_lamports": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/u64"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "undelegated_lamports": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/u64"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "effective_lamports": {
+          "type": "null"
+        },
+        "activating_lamports": {
+          "type": "null"
+        },
+        "deactivating_lamports": {
+          "type": "null"
+        },
+        "staker": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/address"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "withdrawer": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/address"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "vote_address": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/address"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "activation_epoch": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/u64"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "deactivation_epoch": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/u64"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lockup": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "epoch",
+                "unix_timestamp",
+                "custodian"
+              ],
+              "properties": {
+                "epoch": {
+                  "$ref": "#/$defs/u64"
+                },
+                "unix_timestamp": {
+                  "type": "string",
+                  "pattern": "^(0|-?[1-9][0-9]*)$",
+                  "maxLength": 20
+                },
+                "custodian": {
+                  "$ref": "#/$defs/address"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_id": {
+          "type": "string"
+        }
+      }
+    },
+    "validator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vote_address",
+        "name",
+        "commission",
+        "state",
+        "delegated_lamports",
+        "concentration_denominator_lamports",
+        "source_id"
+      ],
+      "properties": {
+        "vote_address": {
+          "$ref": "#/$defs/address"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "commission": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "state": {
+          "enum": [
+            "current",
+            "delinquent",
+            "unknown"
+          ]
+        },
+        "delegated_lamports": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/uint"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "concentration_denominator_lamports": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/uint"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "reward_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "epoch",
+        "amount_lamports",
+        "post_balance_lamports",
+        "effective_slot",
+        "commission",
+        "source_id"
+      ],
+      "properties": {
+        "epoch": {
+          "$ref": "#/$defs/u64"
+        },
+        "amount_lamports": {
+          "$ref": "#/$defs/u64"
+        },
+        "post_balance_lamports": {
+          "$ref": "#/$defs/u64"
+        },
+        "effective_slot": {
+          "$ref": "#/$defs/u64"
+        },
+        "commission": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_id": {
+          "type": "string"
+        }
+      }
+    },
+    "reward_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "address",
+        "state",
+        "latest_attempt",
+        "record"
+      ],
+      "properties": {
+        "address": {
+          "$ref": "#/$defs/address"
+        },
+        "state": {
+          "enum": [
+            "recorded",
+            "no_data",
+            "failed",
+            "not_queried"
+          ]
+        },
+        "latest_attempt": {
+          "enum": [
+            "recorded",
+            "no_data",
+            "failed",
+            "not_queried"
+          ]
+        },
+        "record": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/reward_record"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "recorded"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "record": {
+                "$ref": "#/$defs/reward_record"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "record": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "epoch_reward": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "epoch",
+        "subtotal_lamports",
+        "entries"
+      ],
+      "properties": {
+        "epoch": {
+          "$ref": "#/$defs/u64"
+        },
+        "subtotal_lamports": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/uint"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reward_entry"
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "account_count",
+        "validator_count",
+        "balance_lamports",
+        "withdraw_authority_lamports",
+        "staker_only_lamports",
+        "delegated_lamports",
+        "latest_reward_lamports",
+        "amount_scope"
+      ],
+      "properties": {
+        "account_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "validator_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "balance_lamports": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/uint"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "withdraw_authority_lamports": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/uint"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "staker_only_lamports": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/uint"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "delegated_lamports": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/uint"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "latest_reward_lamports": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/uint"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "amount_scope": {
+          "enum": [
+            "total",
+            "subtotal"
+          ]
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "discovery",
+        "validators",
+        "rewards"
+      ],
+      "properties": {
+        "discovery": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "displayed",
+            "latest_attempt",
+            "staker_query",
+            "withdrawer_query"
+          ],
+          "properties": {
+            "displayed": {
+              "enum": [
+                "complete",
+                "partial",
+                "not_available"
+              ]
+            },
+            "latest_attempt": {
+              "enum": [
+                "complete",
+                "partial",
+                "failed",
+                "not_queried"
+              ]
+            },
+            "staker_query": {
+              "enum": [
+                "succeeded",
+                "failed",
+                "not_queried",
+                "not_applicable"
+              ]
+            },
+            "withdrawer_query": {
+              "enum": [
+                "succeeded",
+                "failed",
+                "not_queried",
+                "not_applicable"
+              ]
+            }
+          }
+        },
+        "validators": {
+          "enum": [
+            "complete",
+            "partial",
+            "failed",
+            "not_queried"
+          ]
+        },
+        "rewards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "epoch",
+              "recorded",
+              "no_data",
+              "failed",
+              "not_queried"
+            ],
+            "properties": {
+              "epoch": {
+                "$ref": "#/$defs/u64"
+              },
+              "recorded": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "no_data": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "failed": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "not_queried": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selection",
+        "input_exists",
+        "epoch",
+        "epoch_kind",
+        "requested_epochs",
+        "stale",
+        "snapshot_kind",
+        "summary",
+        "accounts",
+        "validators",
+        "rewards"
+      ],
+      "properties": {
+        "selection": {
+          "enum": [
+            "authority",
+            "direct"
+          ]
+        },
+        "input_exists": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "epoch": {
+          "$ref": "#/$defs/u64"
+        },
+        "epoch_kind": {
+          "enum": [
+            "finalized",
+            "last_observed"
+          ]
+        },
+        "requested_epochs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/u64"
+          }
+        },
+        "stale": {
+          "type": "boolean"
+        },
+        "snapshot_kind": {
+          "enum": [
+            "latest_complete",
+            "latest_partial"
+          ]
+        },
+        "summary": {
+          "$ref": "#/$defs/summary"
+        },
+        "accounts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/account"
+          }
+        },
+        "validators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validator"
+          }
+        },
+        "rewards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/epoch_reward"
+          }
+        }
+      }
+    }
+  }
+}

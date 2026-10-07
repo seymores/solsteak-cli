@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "input": {
+    "address": "11111111111111111111111111111111",
+    "epochs": 1,
+    "offline": false
+  },
+  "network": {
+    "cluster": "mainnet",
+    "genesis_hash": "11111111111111111111111111111111"
+  },
+  "generated_at": 1791360000,
+  "status": "partial",
+  "data": {
+    "selection": "direct",
+    "input_exists": true,
+    "epoch": "900",
+    "epoch_kind": "finalized",
+    "requested_epochs": [
+      "899"
+    ],
+    "stale": false,
+    "snapshot_kind": "latest_complete",
+    "summary": {
+      "account_count": 1,
+      "validator_count": 0,
+      "balance_lamports": "18446744073709551615",
+      "withdraw_authority_lamports": null,
+      "staker_only_lamports": null,
+      "delegated_lamports": "0",
+      "latest_reward_lamports": null,
+      "amount_scope": "total"
+    },
+    "accounts": [
+      {
+        "address": "11111111111111111111111111111111",
+        "relationship": null,
+        "state": "initialized",
+        "balance_lamports": "18446744073709551615",
+        "delegated_lamports": "0",
+        "rent_reserve_lamports": "2282880",
+        "undelegated_lamports": "18446744073707268735",
+        "effective_lamports": null,
+        "activating_lamports": null,
+        "deactivating_lamports": null,
+        "staker": "11111111111111111111111111111111",
+        "withdrawer": "11111111111111111111111111111111",
+        "vote_address": null,
+        "activation_epoch": null,
+        "deactivation_epoch": null,
+        "lockup": {
+          "epoch": "0",
+          "unix_timestamp": "0",
+          "custodian": "11111111111111111111111111111111"
+        },
+        "source_id": "discovery"
+      }
+    ],
+    "validators": [],
+    "rewards": [
+      {
+        "epoch": "899",
+        "subtotal_lamports": null,
+        "entries": [
+          {
+            "address": "11111111111111111111111111111111",
+            "state": "no_data",
+            "latest_attempt": "no_data",
+            "record": null
+          }
+        ]
+      }
+    ]
+  },
+  "coverage": {
+    "discovery": {
+      "displayed": "complete",
+      "latest_attempt": "complete",
+      "staker_query": "not_applicable",
+      "withdrawer_query": "not_applicable"
+    },
+    "validators": "complete",
+    "rewards": [
+      {
+        "epoch": "899",
+        "recorded": 0,
+        "no_data": 1,
+        "failed": 0,
+        "not_queried": 0
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "discovery",
+      "provider": "helius",
+      "observed_at": 1791360000,
+      "slot": "400000000",
+      "commitment": "finalized",
+      "decoder_version": "stake-v1",
+      "cached": false
+    },
+    {
+      "id": "reward",
+      "provider": "helius",
+      "observed_at": 1791360000,
+      "slot": "399999999",
+      "commitment": null,
+      "decoder_version": null,
+      "cached": false
+    }
+  ],
+  "warnings": [
+    {
+      "code": "UNDELEGATED_FUNDS",
+      "severity": "info",
+      "address": "11111111111111111111111111111111",
+      "evidence": [
+        "Validated initialized account; balance minus rent reserve is 18446744073707268735 lamports."
+      ],
+      "observed_at": 1791360000,
+      "slot": "400000000",
+      "message": "This account has undelegated principal; this does not establish immediately withdrawable funds."
+    },
+    {
+      "code": "INCOMPLETE_REWARDS",
+      "severity": "warning",
+      "address": "11111111111111111111111111111111",
+      "evidence": [
+        "No reward data returned for epoch 899."
+      ],
+      "observed_at": 1791360000,
+      "slot": null,
+      "message": "Rewards are unavailable; this is not a confirmed zero."
+    }
+  ],
+  "errors": []
+}

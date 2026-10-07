@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "input": null,
+  "network": {
+    "cluster": "mainnet",
+    "genesis_hash": null
+  },
+  "generated_at": 1791360000,
+  "status": "error",
+  "data": null,
+  "coverage": null,
+  "sources": [],
+  "warnings": [],
+  "errors": [
+    {
+      "code": "INVALID_ARGUMENTS",
+      "message": "Invalid arguments. Run ssteak --help for usage.",
+      "address": null
+    }
+  ]
+}

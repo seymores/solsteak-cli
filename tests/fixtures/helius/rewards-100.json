@@ -1,0 +1,76 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": [
+    {
+      "epoch": 951,
+      "effectiveSlot": 411264257,
+      "amount": 2202183,
+      "postBalance": 6987972283,
+      "commission": 0
+    },
+    {
+      "epoch": 951,
+      "effectiveSlot": 411264174,
+      "amount": 4680998,
+      "postBalance": 14822418186,
+      "commission": 0
+    },
+    {
+      "epoch": 951,
+      "effectiveSlot": 411264300,
+      "amount": 38755990,
+      "postBalance": 124215339581,
+      "commission": 0
+    },
+    {
+      "epoch": 951,
+      "effectiveSlot": 411264173,
+      "amount": 7747859,
+      "postBalance": 24917850602,
+      "commission": 0
+    },
+    {
+      "epoch": 951,
+      "effectiveSlot": 411264306,
+      "amount": 9690049,
+      "postBalance": 30983723107,
+      "commission": 0
+    },
+    {
+      "epoch": 951,
+      "effectiveSlot": 411264024,
+      "amount": 14118463,
+      "postBalance": 44794049172,
+      "commission": 0
+    },
+    {
+      "epoch": 951,
+      "effectiveSlot": 411264115,
+      "amount": 3952982,
+      "postBalance": 12509817847,
+      "commission": 0
+    },
+    {
+      "epoch": 951,
+      "effectiveSlot": 411264101,
+      "amount": 5088026,
+      "postBalance": 16131880294,
+      "commission": 0
+    },
+    {
+      "epoch": 951,
+      "effectiveSlot": 411264293,
+      "amount": 14177281,
+      "postBalance": 44828566696,
+      "commission": 0
+    },
+    {
+      "epoch": 951,
+      "effectiveSlot": 411264002,
+      "amount": 7144278,
+      "postBalance": 22920270169,
+      "commission": 0
+    }
+  ]
+}

@@ -1,117 +1,62 @@
-This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
+# Beads workflow
 
-## Quick Reference
+Beads (`bd`) is the only task tracker. Read `AGENTS.md`, `spec.md`, and
+`docs/engineering.md` first. Use `.agents/skills/beads/SKILL.md` for CLI guidance.
 
-```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --status in_progress  # Claim work
-bd close <id>         # Complete work
-bd sync               # Sync with git
+## Start and claim
+
+```sh
+bd prime
+bd ready
+bd show <id>
+bd update <id> --claim
 ```
 
-## Landing the Plane (Session Completion)
+Claim atomically before editing. Read requirement IDs, acceptance criteria, and
+blockers. Parent epics group work; explicit dependencies determine execution order.
+Never implement a blocked task by guessing an unresolved contract. Use `bd remember`
+for durable knowledge; do not create markdown task lists.
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+## Create and finish
 
-**MANDATORY WORKFLOW:**
+Each implementation task includes scope, spec requirement/acceptance IDs, likely
+files, validation, and explicit prerequisites. `bd dep add <task> <prerequisite>`
+makes the first task wait for the second. Record discoveries as beads.
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
-   ```bash
-   git pull --rebase
-   bd sync
-   git push
-   git status  # MUST show "up to date with origin"
-   ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+Close with `bd close <id> --reason="..."` only after acceptance criteria and checks
+pass. If review or integration was explicitly required, keep the task open until
+that requirement is satisfied. Local work does not require a remote merge. Record
+changes, checks/results, branch/base commit, remaining risks, and the exact next
+action in the bead. Report uncommitted work accurately.
 
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+## Git authority
 
+This repository is local-only and has no remote. Do not push, pull, or run Dolt
+remote sync. Do not commit, merge, publish, or deploy without explicit authority.
+Beads database transactions/history are part of normal issue operations. At handoff
+run `git status --short`; preserve unrelated user changes.
 
-<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:1105d646 -->
-## Beads Issue Tracker
+## Health and recovery
 
-This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
-
-### Quick Reference
-
-```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --claim  # Claim work
-bd close <id>         # Complete work
+```sh
+bd doctor
+bd lint
+bd dep cycles
+bd backup status
 ```
 
-### Rules
+The source of truth is the local Dolt database, not Git or an optional JSONL export.
+A local Dolt-native backup is configured at `.beads/backup`. Run `bd backup sync`
+after backlog changes and before database maintenance; this local backup command
+does not contact a remote. Use `bd backup init /absolute/local/backup/path` to change
+the destination. A same-disk backup does not protect against disk loss; the user may
+copy it off-device. JSONL exports are not full database backups.
 
-- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
-- Run `bd prime` for detailed command reference and session close protocol
-- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
+For recovery, preserve the damaged directory first and consult `bd backup restore
+--help`. Restore into an initialized recovery workspace; verify with `bd doctor`
+and `bd list --json`. Never use `--force` against the working database without
+explicit approval. Restore drills must use a disposable workspace.
 
-**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/core-concepts/sync-concepts.md for details and anti-patterns.
-
-## Agent Context Profiles
-
-The managed Beads block is task-tracking guidance, not permission to override repository, user, or orchestrator instructions.
-
-- **Conservative (default)**: Use `bd` for task tracking. Do not run git commits, git pushes, or Dolt remote sync unless explicitly asked. At handoff, report changed files, validation, and suggested next commands.
-- **Minimal**: Keep tool instruction files as pointers to `bd prime`; use the same conservative git policy unless active instructions say otherwise.
-- **Team-maintainer**: Only when the repository explicitly opts in, agents may close beads, run quality gates, commit, and push as part of session close. A current "do not commit" or "do not push" instruction still wins.
-
-## Session Completion
-
-This protocol applies when ending a Beads implementation workflow. It is subordinate to explicit user, repository, and orchestrator instructions.
-
-1. **File issues for remaining work** - Create beads for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **Handle git/sync by active profile**:
-   ```bash
-   # Conservative/minimal/default: report status and proposed commands; wait for approval.
-   git status
-
-   # Team-maintainer opt-in only, unless current instructions forbid it:
-   git pull --rebase
-   git push
-   git status
-   ```
-5. **Hand off** - Summarize changes, validation, issue status, and any blocked sync/commit/push step
-
-**Critical rules:**
-- Explicit user or orchestrator instructions override this Beads block.
-- Do not commit or push without clear authority from the active profile or the current user request.
-- If a required sync or push is blocked, stop and report the exact command and error.
-<!-- END BEADS INTEGRATION -->
-
-<!-- BEGIN BEADS CODEX SETUP: generated by bd setup codex -->
-## Beads Issue Tracker
-
-Use Beads (`bd`) for durable task tracking in repositories that include it. Use the `beads` skill at `.agents/skills/beads/SKILL.md` (project install) or `~/.agents/skills/beads/SKILL.md` (global install) for Beads workflow guidance, then use the `bd` CLI for issue operations.
-
-### Quick Reference
-
-```bash
-bd ready                # Find available work
-bd show <id>            # View issue details
-bd update <id> --claim  # Claim work
-bd close <id>           # Complete work
-bd prime                # Refresh Beads context
-```
-
-### Rules
-
-- Use `bd` for all task tracking; do not create markdown TODO lists.
-- Run `bd prime` when Beads context is missing or stale. Codex 0.129.0+ can load Beads context automatically through native hooks; use `/hooks` to inspect or toggle them.
-- Keep persistent project memory in Beads via `bd remember`; do not create ad hoc memory files.
-
-**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/core-concepts/sync-concepts.md for details and anti-patterns.
-<!-- END BEADS CODEX SETUP -->
+If a sandbox blocks localhost, request access to the existing local Dolt server;
+do not reinitialize the project or assume the database is broken. Check `bd dolt
+status` before starting a server. Runtime logs and backups stay ignored.

@@ -1,8 +1,8 @@
 # SolSteak TUI — technical requirements
 
-Version: 0.4 · 7 October 2026 · Status: discussion draft
+Version: 0.5 · 7 October 2026 · Status: v1 scope and application contract frozen; storage/provider contracts gated
 
-This document defines a terminal UI product and a path to an implementation-ready `spec.md`. It is not yet authorization to implement every proposal. Confirmed context, recommendations, and unresolved decisions are distinguished below.
+This document defines the confirmed v1 product scope and the technical defaults to finalize before implementation. The user authorized development on 7 October 2026. Remaining technical contracts and provider evidence are explicit prerequisite tasks; agents must not silently convert proposals into confirmed financial semantics.
 
 ## 1. Purpose and inherited decisions
 
@@ -15,15 +15,17 @@ Established project direction:
 - Support both personal monitoring and exploration of other addresses.
 - Personal tool used locally, implemented in Rust (confirmed 7 October).
 - Helius is the required provider; the user supplies their own API key.
+- Mainnet only in v1, using direct local RPC access; no service, daemon, or endpoint-selection feature.
+- macOS Apple Silicon is the first supported platform. One-shot `--json` is required alongside the TUI.
 - SQLite local persistence is required (confirmed 7 October); no DuckDB or database server in v1.
 - Primary invocation: `ssteak -a <address>` launches an interactive, full-screen TUI. Intuitive terminal UX/UI is a first-release requirement, not optional polish.
 - The earlier Elixir direction is superseded for this CLI.
 
 Carry forward simplicity, progressive disclosure, and a single-dashboard experience into a terminal-native interface. Web mobile layout, traffic targets, and hosting requirements do not become TUI requirements. Earlier PostgreSQL, Phoenix, and Oban choices were assistant proposals, not confirmed constraints.
 
-## 2. Recommended first release
+## 2. Confirmed first release
 
-A local, interactive Rust TUI with a reusable domain core and polished keyboard-first dashboard. SQLite persistence is required; versioned one-shot JSON output remains a proposed supporting capability. It calls Helius directly using the user's API key. It needs neither a hosted SolSteak service nor a background daemon.
+A local, interactive Rust TUI with a reusable domain core and polished keyboard-first dashboard. SQLite persistence is required; versioned one-shot JSON output is required in v1. It calls Helius directly using the user's API key. It needs neither a hosted SolSteak service nor a background daemon.
 
 The initial release answers:
 
@@ -32,11 +34,11 @@ The initial release answers:
 3. What inflation rewards were recorded for a bounded selection of completed epochs?
 4. Which observations deserve attention, and which data remains unknown?
 
-Exclude initially: transaction submission, liquid staking tokens, fiat prices, tax reporting, MEV reward accounting, validator rankings, continuous monitoring, notifications, network-wide indexing, and complete lifetime wallet history. These exclusions are recommendations to confirm.
+Exclude initially: transaction submission, liquid staking tokens, fiat prices, tax reporting, MEV reward accounting, validator rankings, continuous monitoring, notifications, network-wide indexing, and complete lifetime wallet history. These exclusions are confirmed for v1. Annualized yield is also deferred.
 
 ## 3. TUI launch and UX contract
 
-**Confirmed:** this is an interactive TUI application, not a command that prints formatted tables and exits. The dashboard stays open until the user quits. Detailed design choices below are proposed defaults.
+**Confirmed:** this is an interactive TUI application, not a command that prints formatted tables and exits. The dashboard stays open until the user quits. Application defaults below are frozen by [the behavior contract](docs/contracts/behavior.md). Provider budgets and storage DDL remain separately gated.
 
 ### 3.1 Launch and modes
 
@@ -44,13 +46,13 @@ Exclude initially: transaction submission, liquid staking tokens, fiat prices, t
 ssteak -a <address>               # Interactive staking dashboard
 ssteak -a <address> --epochs 10   # Dashboard with ten completed reward epochs
 ssteak -a <address> --offline     # Browse local cached observations
-ssteak -a <address> --json        # Optional one-shot output, no TUI
+ssteak -a <address> --json        # Required v1 one-shot mode, no TUI
 ```
 
 | Flag | Behavior |
 | --- | --- |
 | `-a, --address ADDRESS` | Required at launch; one wallet/authority or native stake-account address. |
-| `--epochs N` | Reward lookback; proposed default 1 completed epoch, allowed range 1–100. |
+| `--epochs N` | Reward lookback; confirmed default 1 completed epoch, allowed range 1–100. |
 | `--json` | Explicit noninteractive mode: one structured result and exit; no raw mode or alternate screen. |
 | `--refresh` | Bypass reusable observations on initial load. |
 | `--offline` | No network calls during the session; label cached data and age. Conflicts with `--refresh`. |
@@ -61,7 +63,7 @@ Remove the earlier `--details` flag: detail expansion happens inside the TUI. No
 
 Validate arguments and online credentials before entering raw mode. Missing address/key produces concise guidance and exit 2. Use the user-supplied `HELIUS_API_KEY`; offline mode needs no key. If stdin or stdout is not a usable terminal, explain that `--json` is available and exit 2 without control codes; do not silently change modes.
 
-Automatically inspect native stake-account input directly; otherwise discover both authority relationships even for unfunded addresses. Preserve existing attribution safeguards. No hidden lifetime history backfill. JSON stdout contains exactly one object for operational results/errors, with diagnostics on stderr. Help/version remain text; malformed-argument JSON behavior must be frozen in the final spec.
+Automatically inspect native stake-account input directly; otherwise discover both authority relationships even for unfunded addresses. Preserve existing attribution safeguards. No hidden lifetime history backfill. JSON stdout contains exactly one object for operational results/errors, with diagnostics on stderr. Help/version remain text. An exact `--json` token before the `--` delimiter selects a JSON error envelope even for malformed arguments; raw invalid values are not echoed. The behavior contract defines validation order and exit precedence.
 
 ### 3.2 Information hierarchy
 
@@ -130,17 +132,17 @@ Below 80×24 show current dimensions, minimum-size guidance, and quit help. Rest
 
 **FR-03 — Direct account inspection.** For stake input, inspect that account alone. Report its authorities, delegation, rent reserve, lockup, and supported state fields. A missing account in auto mode still undergoes authority discovery. Report whether the input account exists separately from whether associated stake accounts were found.
 
-**FR-04 — Authority scopes.** Every account has a relationship label: withdrawer, staker, or both. “Associated account balance” is the deduplicated union. Withdraw-authority and staker-only subtotals are separate and must not be added twice. Authority relationships are not proof of beneficial ownership. Withdraw authority does not imply immediately withdrawable funds, particularly with lockups or active stake.
+**FR-04 — Authority scopes.** For authority input, every discovered account has a relationship label: withdrawer, staker, or both. For direct stake-account input, identify selection mode as direct and mark the authority relationship not applicable; the inspected account address is not asserted to be its own authority. “Associated account balance” is the deduplicated union. Withdraw-authority and staker-only subtotals are separate and must not be added twice. Authority relationships are not proof of beneficial ownership. Withdraw authority does not imply immediately withdrawable funds, particularly with lockups or active stake.
 
 **FR-05 — Coverage.** Current discovery cannot prove lifetime ownership, recover every closed account, or reconstruct historical authority transfers, splits, and merges. All historical reports state: rewards for the selected current account set, not lifetime earnings attributable to the wallet. Cached formerly associated accounts do not silently enter that set.
 
 ## 5. Balances, stake state, and findings
 
-**FR-06 — Amounts.** Internally use integer lamports and decimal arithmetic; never binary floating point for money. Distinguish total account balance, recorded delegated amount, rent reserve, and effective active stake. Do not sum these overlapping values into a portfolio total. Undelegated funds, rent, and effective stake need explicit definitions in the frozen spec.
+**FR-06 — Amounts.** Internally use integer lamports and decimal arithmetic; never binary floating point for money. Distinguish total account balance, recorded delegated amount, rent reserve, and effective active stake. Do not sum these overlapping values into a portfolio total. The behavior contract defines these fields: undelegated principal is checked balance minus rent only for validated initialized accounts; delegated/unsupported accounts do not infer withdrawable excess, and exact active amounts remain unknown.
 
-**FR-07 — State correctness.** Decode initialized/undelegated and delegated accounts. Show activation and deactivation epochs where available. Exact effective/activating/deactivating amounts require a validated, current chain-compatible calculation and relevant historical inputs. Epoch comparison alone is not sufficient. Do not depend on the removed `getStakeActivation` RPC. If the exact calculation is not validated, render effective amounts as unknown and show observed delegation fields without claiming full activation.
+**FR-07 — State correctness.** Decode initialized/undelegated and delegated accounts. Show activation and deactivation epochs where available. Exact effective/activating/deactivating amounts require a validated, current chain-compatible calculation and relevant historical inputs. Epoch comparison alone is not sufficient. Do not depend on the removed `getStakeActivation` RPC. Confirmed v1 behavior: render unvalidated effective/activating/deactivating amounts as “Unknown” and show observed delegation fields without claiming full activation. Exact activation calculations are not a v1 release blocker and must not be added without a separate validated scope decision.
 
-**FR-08 — Findings.** Each finding contains a stable code, severity, affected address, observed evidence, observation time/slot, and plain-language explanation. Initial candidates: undelegated funds, deactivation requested, lockup present, provider-reported validator delinquency, unsupported state, incomplete discovery, and incomplete reward data. An intentional deactivation or lockup is informational, not automatically a fault. Avoid a generic “healthy” badge: say “No issues detected by these checks” only when required checks completed.
+**FR-08 — Findings.** Each finding contains a stable code, severity, affected address, observed evidence, observation time/slot, and plain-language explanation. Initial findings: undelegated funds, deactivation requested, provider-reported validator delinquency, unsupported state, incomplete discovery, and incomplete reward data. An intentional deactivation is informational, not automatically a fault. Lockup metadata remains available in account details without producing an attention finding. Avoid a generic “healthy” badge: say “No issues detected by these checks” only when required checks completed.
 
 **FR-09 — Validators.** Group using vote-account public keys, not names. Report current commission, current/delinquent classification when available, and concentration using recorded delegated amounts, with that denominator labeled. A missing validator record is unknown. Current commission is not historical commission. Names are optional enrichment. Comparative yield and validator rankings remain deferred until a defensible historical methodology exists.
 
@@ -160,12 +162,13 @@ Below 80×24 show current dimensions, minimum-size guidance, and quit help. Rest
 
 | Need | Initial source | Implementation notes |
 | --- | --- | --- |
+| Verify network identity | `getGenesisHash` | Verify mainnet identity on online sessions; persist for offline provenance. |
 | Classify/read input | `getAccountInfo` | Do not require wallet account existence for authority discovery. |
 | Discover stake accounts | Two filtered `getProgramAccounts` calls for `any` | Native Stake Program; finalized; request context; decode and dedupe. |
 | Determine current epoch | `getEpochInfo` | Snapshot command context; invalidate epoch-sensitive caches across rollover. |
 | Validator observations | `getVoteAccounts` | Share/cache global response where practical. |
 | Reward records | `getInflationReward` | Explicit epoch; bounded address batches and concurrency. |
-| Exact activation, if included | Required sysvars/history plus validated calculation | Feasibility gate; not an assumed three-call feature. |
+| Exact activation | Deferred | Display Unknown until separately validated; no activation-specific RPC work required in v1. |
 
 Helius-specific pagination or enhanced endpoints may be adopted after a capability spike, behind the adapter. Do not invent plan limits or assume arbitrary batch sizes. Discovery failure, limits, or truncation must prevent a claim of complete discovery. Check both authority queries independently.
 
@@ -186,7 +189,7 @@ Proposed layers:
 
 Use one Rust Cargo package with a small binary entry point and library modules for the domain, Helius access, persistence, and rendering. Keep interfaces small; do not build a generic plugin framework or hosted service. The core should be independently testable; cross-language reuse by a future web application is not a v1 requirement.
 
-Use typed models and errors. Represent individual on-chain lamport amounts as `u64`, perform checked wider aggregation (for example `u128`), and explicitly handle overflow and unknown values. Pin the Rust toolchain and dependency versions when producing `spec.md`; commit the application lockfile. Dependency selection remains an implementation decision, not a user requirement.
+Use typed models and errors. Represent individual on-chain lamport amounts as `u64`, perform checked wider aggregation (for example `u128`), and explicitly handle overflow and unknown values. Pin the Rust toolchain during the foundation prerequisite and retain the application lockfile as dependencies are selected. Git commits follow repository authority. Dependency selection remains an implementation decision, not a user requirement.
 
 ### 8.1 Persistence scope and responsibilities
 
@@ -208,7 +211,7 @@ Concrete DDL remains to be frozen in `spec.md`; these identities and invariants 
 | --- | --- |
 | Network metadata | Verified network identity (genesis hash), cluster label, last observed finalized epoch and time. |
 | Discovery snapshot | Network + inspected address + generation; authority-query outcomes, source slots/times, completion status, last-complete pointer. |
-| Discovery members | Snapshot + stake address; staker/withdrawer/both relationship and reference to the account observation used in that snapshot. |
+| Discovery members | Snapshot + stake address; authority relationship (staker/withdrawer/both), or not applicable for direct selection, and reference to the account observation used in that snapshot. |
 | Stake observation | Network + stake address + observation identity; exact amounts, decoded state, authorities, delegation, lockup, and provenance. |
 | Validator observation | Network + vote address; latest usable observation, current metrics, provenance, and coverage. Shared across inspected addresses. |
 | Inflation reward | Unique network + stake address + reward epoch; amount, post-balance, effective slot, commission when present, and provenance. |
@@ -240,7 +243,7 @@ Changing the reward lookback queries only missing eligible account/epoch combina
 
 ### 8.4 Atomic refresh, resumability, and conflict handling
 
-**DB-06 — Discovery publication.** Treat the two authority queries as one discovery generation. Only publish a new complete membership set when both required queries completed without truncation and validation/coverage requirements passed. If one fails, preserve the last complete snapshot; expose the latest attempt separately as partial. Do not union old and new account sets into an unlabeled current total. With no complete baseline, show partial results as partial only.
+**DB-06 — Discovery publication.** Persist selection mode (authority or direct) with each snapshot. Direct inspection publishes a one-account snapshot after a validated account read; it does not wait for authority queries. For authority selection, treat the two authority queries as one discovery generation. Only publish a new complete membership set when both required queries completed without truncation and validation/coverage requirements passed. If one fails, preserve the last complete snapshot; expose the latest attempt separately as partial. Do not union old and new account sets into an unlabeled current total. With no complete baseline, show partial results as partial only.
 
 Publish membership, referenced account observations, coverage, and the last-complete pointer in one short transaction. Never delete an account merely because it is absent from an incomplete response. Retire obsolete snapshot rows only after successful replacement; do not cascade deletion into durable rewards.
 
@@ -260,9 +263,9 @@ Create the schema on first use with numbered, transactional migrations and param
 
 ## 9. Output, errors, privacy, and budgets
 
-Every JSON response includes `schema_version`, `input`, `network`, `generated_at`, `status`, `data`, `coverage`, `sources`, `warnings`, and `errors`. Freeze the concrete report schema and example files in `spec.md`; this draft is not a complete wire schema.
+Every JSON response includes `schema_version`, `input`, `network`, `generated_at`, `status`, `data`, `coverage`, `sources`, `warnings`, and `errors`. [Report schema v1](docs/contracts/report.schema.json), [synthetic examples](docs/contracts/examples/), and [application behavior](docs/contracts/behavior.md) are normative parts of this spec. Schema validation is structural; Rust must also enforce numeric bounds, unique identities, resolved source IDs and matching coverage counts.
 
-For one-shot JSON mode, proposed exit codes: 0 complete report; 2 input/configuration error; 3 useful partial report; 4 provider/network failure with no usable report; 5 local persistence/internal failure; 130 interrupted. Attention findings alone do not mean command failure. An explicitly requested offline report can exit 0 if complete for its labeled cached observation; missing required cached data produces 3 or 4 with a specific offline error code.
+For one-shot JSON mode, frozen exit codes: 0 complete report; 2 input/configuration error; 3 useful partial report; 4 provider/network failure with no usable report; 5 local persistence/internal failure; 130 interrupted. Attention findings alone do not mean command failure. An explicitly requested offline report can exit 0 if complete for its labeled cached observation; missing required cached data produces 3 or 4 with a specific offline error code.
 
 TUI exit behavior: normal user quit returns 0 regardless of current data coverage; partial/error coverage stays visible in-app. Recoverable provider failures do not end the session. Startup errors use 2/4/5 as appropriate, fatal session errors use 5, and Ctrl-C uses 130.
 
@@ -320,12 +323,12 @@ Test domain behavior with fixed RPC fixtures covering these cases. Add determini
 
 ## 11. Delivery sequence and spec gate
 
-1. **Capability spike:** verify Helius filtered discovery, limits, account encoding, reward lookback availability, epoch-boundary behavior, and exact activation feasibility. Record representative responses and measured call counts. Do this before committing to exact activation amounts or historical completeness.
+1. **Capability spike and contract gates:** verify Helius filtered discovery, limits, account encoding, network identity, reward lookback availability, and epoch-boundary behavior. Record sanitized representative responses, provider plan, measured call counts, and limits. Live queries require a separately authorized run. Exact activation is deferred; lack of an exact calculation does not block v1. Freeze remaining application and storage contracts in prerequisite beads before dependent implementation.
 2. **TUI vertical slice:** `ssteak -a ADDRESS`; dashboard, keyboard navigation, expandable detail, responsive layout, asynchronous loading, and terminal cleanup. Validate with fixtures first; a static table printer does not complete this milestone.
 3. **Rewards and persistence:** implement DB-01 through DB-10, migration/backup handling, cache-first TUI integration, offline use, atomic refresh/resume, and AC-27 through AC-37.
-4. **Polish and release:** validator grouping/findings, search/sort/address switching/help, optional JSON mode, terminal snapshot/lifecycle tests, packaging, and hands-on UX verification.
+4. **Polish and release:** validator grouping/findings, search/sort/address switching/help, required JSON mode, terminal snapshot/lifecycle tests, packaging, and hands-on UX verification.
 
-Rust packaging: build a native `ssteak` executable for the user's machine. Propose macOS Apple Silicon as the first supported target, based on the user's workstation; other operating systems and public binary distribution are not required initially. Building from source requires the pinned Rust toolchain; running the resulting executable should not require Rust, a database server, or an application runtime. Validate actual native library dependencies before release. A single executable does not mean a universal cross-platform binary or the absence of a local data file.
+Rust packaging: build a native `ssteak` executable for the user's machine. macOS Apple Silicon is the confirmed first supported target; other operating systems and public binary distribution are not required initially. Building from source requires the pinned Rust toolchain; running the resulting executable should not require Rust, a database server, or an application runtime. Validate actual native library dependencies before release. A single executable does not mean a universal cross-platform binary or the absence of a local data file.
 
 Confirmed decisions and remaining recommendations:
 
@@ -335,21 +338,37 @@ Confirmed decisions and remaining recommendations:
 | Language | Confirmed | Rust. |
 | Interaction | Confirmed | `ssteak -a <address>` launches an interactive full-screen TUI. |
 | Provider and credentials | Confirmed | Helius; user-supplied API key. |
-| Deployment | Proposed | Direct local RPC access; no service or daemon. |
+| Deployment | Confirmed | Direct local Helius RPC access; no service or daemon. |
+| Network | Confirmed | Mainnet only in v1; no cluster or endpoint selection. |
+| JSON mode | Confirmed | Versioned one-shot `--json` output ships in v1. |
 | Storage | Confirmed | SQLite local persistence for cached state, rewards, and query coverage; no DuckDB or database server. |
-| First-release depth | Proposed | Current account state and bounded inflation reward history; defer lifetime reconstruction and yield ranking. |
-| Dashboard layout | Proposed | Summary, attention, scrollable accounts, contextual detail, and collapsible secondary sections. |
+| First-release depth | Confirmed | Current account state and bounded inflation reward history; defer lifetime reconstruction and yield ranking. |
+| Dashboard layout | Frozen engineering default | Summary, attention, scrollable accounts, contextual detail, and collapsible secondary sections. |
 | UX requirement | Confirmed | Good terminal-native UI and intuitive interaction are part of v1. |
-| Interaction details | Proposed | Discoverable keyboard controls, manual refresh, address switching, responsive 80×24 minimum layout. |
-| Reward default | Proposed | Latest completed epoch; `--epochs N` for more. |
-| Activation precision | Proposed | Exact amounts only after validation; explicit unknowns otherwise. |
-| First platform | Proposed | macOS Apple Silicon; locally built executable. |
+| Refresh | Confirmed | Manual refresh after initial cache/stale-data loading; no polling. |
+| Interaction details | Frozen engineering default | Discoverable keyboard controls, address switching, responsive 80×24 minimum layout; transitions defined in docs/contracts/behavior.md. |
+| Reward default | Confirmed | Latest completed epoch; `--epochs N`, range 1–100. |
+| Activation precision | Confirmed | Display Unknown until validated; exact calculations deferred from the v1 critical path. |
+| First platform | Confirmed | macOS Apple Silicon; locally built executable. |
 
-Then freeze: Rust toolchain/dependency versions, installation platforms, exact command flags/defaults, TUI layout/keymap/state transitions, schemas, field definitions, provider limits, decoder references, fixtures, database schema, error codes, deadlines, and acceptance tests. Each implementation task should point to requirement and acceptance IDs. Coding agents must not resolve financial semantics by inventing convenient defaults.
+Then freeze in prerequisite beads: Rust toolchain/dependency versions, exact command flags/defaults, TUI layout/keymap/state transitions, schemas, field definitions, provider limits, decoder references, fixtures, database schema, error codes, deadlines, and acceptance tests. Each implementation task should point to requirement and acceptance IDs. Coding agents must not resolve financial semantics by inventing convenient defaults.
+
+### 11.1 Remaining technical gates
+
+The application contract is frozen in `docs/contracts/behavior.md` and
+`docs/contracts/report.schema.json`; example reports are synthetic fixtures, not
+live evidence. Changes must preserve the confirmed scope and update these contracts
+and tests together. Rust 1.99.0 is pinned in `rust-toolchain.toml`.
+
+Storage contract tasks must still freeze DDL, direct snapshots, comparable generation
+ordering across processes, conflicting numeric reward policy, path overrides, and
+backup retention. Provider limits and budgets require evidence from the capability
+spike. Each dependent bead stays blocked on its relevant gate. A fixture-only TUI
+slice can proceed independently of live access after its domain/CLI prerequisites.
 
 ## 12. Evidence and references
 
-Prior context: SolSteak dashboard discussion (27 September); stake discovery and reward history discussions (30 September); Elixir and Helius discussions (6 October). Prior assistant recommendations are not treated as user-approved requirements. On 7 October the user explicitly selected local personal usage, their own Helius API key, Rust, and `ssteak -a <address>`; these supersede conflicting earlier proposals. The subsequent user clarification requires an interactive TUI with intuitive terminal UX/UI, superseding the one-shot report default and full-screen UI exclusion in v0.2. The user then selected SQLite local persistence after comparison with DuckDB; v0.4 makes SQLite required.
+Prior context: SolSteak dashboard discussion (27 September); stake discovery and reward history discussions (30 September); Elixir and Helius discussions (6 October). Prior assistant recommendations are not treated as user-approved requirements. On 7 October the user explicitly selected local personal usage, their own Helius API key, Rust, and `ssteak -a <address>`; these supersede conflicting earlier proposals. The subsequent user clarification requires an interactive TUI with intuitive terminal UX/UI, superseding the one-shot report default and full-screen UI exclusion in v0.2. The user then selected SQLite local persistence after comparison with DuckDB; v0.4 makes SQLite required. The user subsequently accepted macOS Apple Silicon, mainnet-only direct access, manual refresh, one completed reward epoch by default (range 1–100), and the exclusions; required JSON in v1; and approved Unknown for exact activation amounts until validated. Version 0.5 records those decisions.
 
 Current official documentation checked on 7 October 2026:
 
@@ -363,4 +382,4 @@ SQLite reference documentation reviewed during the persistence discussion:
 - [Appropriate uses for SQLite](https://www.sqlite.org/whentouse.html).
 - [Write-ahead logging](https://www.sqlite.org/wal.html).
 
-Provider plan entitlements, reward retention, exact stake-state calculations, and packaging dependencies still need verification in the capability spike.
+Provider plan entitlements, reward retention, and packaging dependencies still need verification in their prerequisite/release tasks. Exact stake-state calculations are deferred and may display Unknown in v1.

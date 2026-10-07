@@ -16,9 +16,12 @@
 
 ## Verification
 Run the checks relevant to the change, with these as the baseline:
-- cargo fmt --check
-- cargo clippy --all-targets --all-features -- -D warnings
-- cargo test --locked
+- rustup run 1.99.0 cargo fmt --check
+- rustup run 1.99.0 cargo clippy --all-targets --all-features --locked -- -D warnings
+- rustup run 1.99.0 cargo test --locked
+
+Use the pinned toolchain explicitly: Homebrew's standalone Cargo does not honor
+rust-toolchain.toml. Rustup-managed Cargo on PATH also honors the pin.
 
 Automated tests must run without a real Helius key.
 Use fixtures or a local mock server for network-dependent behavior.
@@ -32,5 +35,7 @@ Record in the bead:
 - Remaining risks or blockers
 - Exact next action
 
-Do not close implementation tasks until accepted and merged.
-Do not merge, publish, or deploy unless instructed.
+Close tasks after acceptance criteria and relevant checks pass. If the user
+explicitly requires review or integration, keep them open until it is satisfied.
+This local-only project does not require a remote merge to complete local work.
+Do not commit, merge, publish, or deploy unless instructed.
