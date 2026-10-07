@@ -44,6 +44,10 @@ so it was amended in place; schema 1 reports are not interchangeable with it.
   network or terminal setup. `INVALID_EPOCHS` no longer exists.
 - The Enter toggle for account details and the separate rewards section.
 
+### Repository
+- `.gitignore` ignores `.superpowers/` (local brainstorming artifacts) and
+  `.claude/worktrees/` (linked agent worktrees).
+
 ### Notes
 - Historical validator attribution is unverified: charts use each account's current
   validator because delegation history is not reconstructed.

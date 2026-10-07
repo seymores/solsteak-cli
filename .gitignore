@@ -18,3 +18,9 @@
 
 # bv (b9s) local config and caches
 .bv/
+
+# Local brainstorming companion artifacts
+.superpowers/
+
+# Claude Code linked worktrees
+.claude/worktrees/
