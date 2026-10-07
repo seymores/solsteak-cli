@@ -5,3 +5,13 @@
 .beads-credential-key
 .beads/proxieddb/
 *.gate.lock*
+
+
+# Added by cargo
+
+/target
+
+.env
+.env.*
+!.env.example
+
