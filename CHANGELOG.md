@@ -47,6 +47,8 @@ so it was amended in place; schema 1 reports are not interchangeable with it.
 ### Repository
 - `.gitignore` ignores `.superpowers/` (local brainstorming artifacts) and
   `.claude/worktrees/` (linked agent worktrees).
+- README, `AGENTS.md` and docs no longer say the repository is local-only with
+  no remote; commit and push still need user authority.
 
 ### Notes
 - Historical validator attribution is unverified: charts use each account's current

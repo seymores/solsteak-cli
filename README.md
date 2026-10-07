@@ -73,4 +73,4 @@ storage recovery behavior, and launch rules are in [the application contract](do
 
 Normal automated checks need no Helius credentials. Live checks require an explicit
 request and a user-supplied key; never commit credentials. Beads holds task scope,
-ordering, blockers, and handoffs. No Git remote is configured.
+ordering, blockers, and handoffs. The Git remote is `origin` on GitHub.

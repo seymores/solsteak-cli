@@ -31,8 +31,8 @@ action in the bead. Report uncommitted work accurately.
 
 ## Git authority
 
-This repository is local-only and has no remote. Do not push, pull, or run Dolt
-remote sync. Do not commit, merge, publish, or deploy without explicit authority.
+The Git remote is `origin` on GitHub. Do not push, pull, or run Dolt
+remote sync unless the user asks. Do not commit, merge, publish, or deploy without explicit authority.
 Beads database transactions/history are part of normal issue operations. At handoff
 run `git status --short`; preserve unrelated user changes.
 

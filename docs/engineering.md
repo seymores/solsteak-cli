@@ -37,5 +37,5 @@ Record in the bead:
 
 Close tasks after acceptance criteria and relevant checks pass. If the user
 explicitly requires review or integration, keep them open until it is satisfied.
-This local-only project does not require a remote merge to complete local work.
+Completing local work does not require a remote merge.
 Do not commit, merge, publish, or deploy unless instructed.
